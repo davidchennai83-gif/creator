@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Creator Platform connection check</title>
+</head>
+<body style="background:white;color:#111;font:18px system-ui,sans-serif;padding:24px;max-width:600px;margin:auto">
+  <h1>Connection check</h1>
+  <p><strong>Page received:</strong> Your browser reached Creator Platform.</p>
+  <p id="javascript">JavaScript: not started.</p>
+  <p id="api">Server check: waiting.</p>
+  <p><a href="/login?mobile-check=2">Open the application login page</a></p>
+  <p>If this page appears but the login page stays blank, send a screenshot of this page and your Chrome version.</p>
+  <noscript>JavaScript is disabled in this browser. Enable it in Chrome Site settings.</noscript>
+  <script>
+    document.getElementById('javascript').textContent = 'JavaScript: working.';
+    var request = new XMLHttpRequest();
+    request.open('GET', '/health?mobile-check=' + Date.now());
+    request.setRequestHeader('ngrok-skip-browser-warning', '1');
+    request.timeout = 15000;
+    request.onload = function () {
+      var message = 'Server returned HTTP ' + request.status;
+      try {
+        var data = JSON.parse(request.responseText);
+        if (request.status === 200 && data.status === 'healthy') message = 'Server: healthy.';
+      } catch (error) { message += ' (unexpected page instead of server response).'; }
+      document.getElementById('api').textContent = message;
+    };
+    request.onerror = request.ontimeout = function () {
+      document.getElementById('api').textContent = 'Server check failed: network error or timeout.';
+    };
+    request.send();
+  </script>
+</body>
+</html>

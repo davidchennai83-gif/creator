@@ -1,0 +1,13 @@
+# Overlay: docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up --build
+services:
+  backend:
+    volumes:
+      - ./backend/app:/app/backend/app:ro
+    ports:
+      - "127.0.0.1:8000:8000"
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"
+  redis:
+    ports:
+      - "127.0.0.1:6379:6379"

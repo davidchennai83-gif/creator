@@ -1,0 +1,2 @@
+from app.api.planned import planned_router
+router = planned_router("Social integrations", [("GET", "/platforms"), ("GET", "/accounts"), ("POST", "/accounts/connect"), ("PUT", "/accounts/{account_id}"), ("DELETE", "/accounts/{account_id}"), ("POST", "/accounts/{account_id}/sync"), ("POST", "/accounts/{account_id}/test"), ("GET", "/posts"), ("GET", "/analytics"), ("POST", "/publish"), ("GET", "/publish/{job_id}/status")])

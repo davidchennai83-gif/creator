@@ -1,0 +1,20 @@
+import { test, expect } from '@playwright/test';
+test('register, navigate, restore session and logout',async({page})=>{
+  const suffix=Date.now().toString();
+  await page.goto('/register');
+  await page.getByLabel('Username',{exact:true}).fill('creator'+suffix);
+  await page.getByLabel('Email',{exact:true}).fill('creator'+suffix+'@example.com');
+  await page.getByLabel('Password',{exact:true}).fill('A secure password for testing');
+  await page.getByRole('button',{name:'Create account',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Creator dashboard'})).toBeVisible();
+  await page.getByRole('link',{name:'Task Scheduler'}).first().click();
+  await expect(page.getByRole('heading',{name:'Task Scheduler'})).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading',{name:'Task Scheduler'})).toBeVisible();
+  await page.goto('/calendar');
+  await expect(page.getByRole('heading',{name:'Page not found'})).toBeVisible();
+  await page.getByRole('button',{name:'Sign out'}).click();
+  await expect(page.getByRole('heading',{name:'Welcome back'})).toBeVisible();
+  await page.goto('/scheduler');
+  await expect(page.getByRole('heading',{name:'Welcome back'})).toBeVisible();
+});

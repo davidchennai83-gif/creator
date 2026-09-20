@@ -1,0 +1,109 @@
+import enum
+
+DATABASE_POOL_SIZE = 5
+DATABASE_MAX_OVERFLOW = 10
+DATABASE_POOL_RECYCLE = 3600
+CACHE_TTL_DEFAULT = 300
+
+class ContentStatus(enum.Enum):
+    IDEA = "IDEA"
+    DRAFT = "DRAFT"
+    SCRIPT_READY = "SCRIPT_READY"
+    MEDIA_READY = "MEDIA_READY"
+    VIDEO_PROCESSING = "VIDEO_PROCESSING"
+    READY_FOR_REVIEW = "READY_FOR_REVIEW"
+    APPROVED = "APPROVED"
+    SCHEDULED = "SCHEDULED"
+    PUBLISHED = "PUBLISHED"
+    FAILED = "FAILED"
+    ARCHIVED = "ARCHIVED"
+
+class VideoStatus(enum.Enum):
+    IDEA = "IDEA"
+    DRAFT = "DRAFT"
+    SCRIPT_READY = "SCRIPT_READY"
+    MEDIA_READY = "MEDIA_READY"
+    VIDEO_PROCESSING = "VIDEO_PROCESSING"
+    READY_FOR_REVIEW = "READY_FOR_REVIEW"
+    APPROVED = "APPROVED"
+    SCHEDULED = "SCHEDULED"
+    PUBLISHED = "PUBLISHED"
+    FAILED = "FAILED"
+    ARCHIVED = "ARCHIVED"
+
+class TaskStatus:
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+    RETRYING = "RETRYING"
+    CANCELLED = "CANCELLED"
+
+class TaskPriority:
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    URGENT = "URGENT"
+
+class OrderStatus:
+    NEW = "NEW"
+    PAID = "PAID"
+    PROCESSING = "PROCESSING"
+    SHIPPED = "SHIPPED"
+    DELIVERED = "DELIVERED"
+    CANCELLED = "CANCELLED"
+    REFUNDED = "REFUNDED"
+
+class ProductStatus:
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    OUT_OF_STOCK = "OUT_OF_STOCK"
+    ARCHIVED = "ARCHIVED"
+
+class UserRole:
+    SUPER_ADMIN = "SUPER_ADMIN"
+    ADMIN = "ADMIN"
+    EDITOR = "EDITOR"
+    ANALYST = "ANALYST"
+    VIEWER = "VIEWER"
+
+class NotificationType:
+    VIDEO_READY = "VIDEO_READY"
+    VIDEO_GENERATION_FAILED = "VIDEO_GENERATION_FAILED"
+    POST_PUBLISHED = "POST_PUBLISHED"
+    POST_FAILED = "POST_FAILED"
+    SCHEDULED_TASK_UPCOMING = "SCHEDULED_TASK_UPCOMING"
+    AFFILIATE_ORDER = "AFFILIATE_ORDER"
+    PRODUCT_ORDER = "PRODUCT_ORDER"
+    LOW_STOCK = "LOW_STOCK"
+    PAYMENT_SUCCESS = "PAYMENT_SUCCESS"
+    PAYMENT_FAILURE = "PAYMENT_FAILURE"
+    SYSTEM_ERROR = "SYSTEM_ERROR"
+
+class NotificationChannel:
+    IN_APP = "IN_APP"
+    EMAIL = "EMAIL"
+    PUSH = "PUSH"
+
+class PaymentProvider:
+    STRIPE = "stripe"
+    RAZORPAY = "razorpay"
+    MOCK = "mock"
+
+class StorageProvider:
+    LOCAL = "local"
+    S3 = "s3"
+    GCS = "gcs"
+
+class AIProvider:
+    OLLAMA = "ollama"
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    MOCK = "mock"
+
+class SocialPlatform:
+    YOUTUBE = "youtube"
+    FACEBOOK = "facebook"
+    INSTAGRAM = "instagram"
+    TIKTOK = "tiktok"
+    TWITTER = "twitter"

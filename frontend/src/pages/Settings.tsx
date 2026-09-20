@@ -1,0 +1,2 @@
+import { useAuthStore } from '../stores/authStore';
+export default function Settings(){const user=useAuthStore(s=>s.user);return <section className="card space-y-4"><h1 className="text-2xl font-bold">Profile & settings</h1><p>{user?.display_name || user?.username}</p><p>{user?.email}</p><p>Role: {user?.role}</p><p>Server configuration is managed in the local .env file. Integration settings and password recovery are not implemented yet.</p></section>;}

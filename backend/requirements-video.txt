@@ -1,0 +1,5 @@
+-r requirements.txt
+moviepy==2.2.1
+edge-tts>=7.2,<8
+pillow==11.3.0
+imageio-ffmpeg==0.6.0

@@ -1,0 +1,12 @@
+backend/app/api/routes/affiliate.py
+backend/app/api/routes/ai.py
+backend/app/api/routes/analytics.py
+backend/app/api/routes/content.py
+backend/app/api/routes/notifications.py
+backend/app/api/routes/orders.py
+backend/app/api/routes/products.py
+backend/app/api/routes/revenue.py
+backend/app/repositories/content_repo.py
+backend/app/schemas/content.py
+frontend/src/pages/ContentLibrary.tsx
+frontend/src/pages/ContentStudio.tsx
