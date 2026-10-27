@@ -1,0 +1,322 @@
+[
+ {
+  "id": "good-morning",
+  "theme": "greetings",
+  "title": "Good morning — காலை வணக்கம்",
+  "title_en": "Good morning",
+  "topic": "chat",
+  "photo": "two people greeting each other outdoors",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: Good morning.",
+   "இதன் தமிழ் பொருள்: காலை வணக்கம்.",
+   "எடுத்துக்காட்டு: Good morning, sir! அதாவது, வணக்கம் ஐயா!",
+   "காலையில் யாரைச் சந்தித்தாலும் இதைச் சொல்லி பழகுங்கள்."
+  ],
+  "facts": ["A polite greeting used from morning until around noon.", "A simple reply is: Good morning!"],
+  "links": []
+ },
+ {
+  "id": "good-night",
+  "theme": "greetings",
+  "title": "Good night — இனிய இரவு",
+  "title_en": "Good night",
+  "topic": "chat",
+  "photo": "night sky over a quiet city",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: Good night.",
+   "இதன் தமிழ் பொருள்: இனிய இரவு.",
+   "எடுத்துக்காட்டு: Good night, sleep well! அதாவது, இனிய இரவு, நன்றாக உறங்குங்கள்!",
+   "படுக்கைக்குச் செல்லும் முன் இதைச் சொல்லுங்கள்."
+  ],
+  "facts": ["Said when parting at night or before sleeping.", "It is a farewell, not a greeting."],
+  "links": []
+ },
+ {
+  "id": "thank-you",
+  "theme": "courtesy",
+  "title": "Thank you — நன்றி",
+  "title_en": "Thank you",
+  "topic": "chat",
+  "photo": "person saying thank you with a smile",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: Thank you.",
+   "இதன் தமிழ் பொருள்: நன்றி.",
+   "எடுத்துக்காட்டு: Thank you so much for your help. அதாவது, உங்கள் உதவிக்கு மிக்க நன்றி.",
+   "யாராவது உதவி செய்தால் இதைச் சொல்லி நன்றி தெரிவியுங்கள்."
+  ],
+  "facts": ["Used to express gratitude.", "A common reply is: You are welcome."],
+  "links": []
+ },
+ {
+  "id": "please",
+  "theme": "courtesy",
+  "title": "Please — தயவுசெய்து",
+  "title_en": "Please",
+  "topic": "chat",
+  "photo": "two people talking politely at a desk",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: Please.",
+   "இதன் தமிழ் பொருள்: தயவுசெய்து.",
+   "எடுத்துக்காட்டு: Please sit down. அதாவது, தயவுசெய்து உட்காருங்கள்.",
+   "கேட்கும் போது இந்த வார்த்தையைச் சேர்த்தால் பேச்சு மரியாதையாக இருக்கும்."
+  ],
+  "facts": ["A polite word used when asking for something.", "It makes a request sound courteous."],
+  "links": []
+ },
+ {
+  "id": "sorry",
+  "theme": "courtesy",
+  "title": "I am sorry — மன்னிக்கவும்",
+  "title_en": "I am sorry",
+  "topic": "chat",
+  "photo": "person apologising with hands folded",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: I am sorry.",
+   "இதன் தமிழ் பொருள்: மன்னிக்கவும்.",
+   "எடுத்துக்காட்டு: I am sorry, I am late. அதாவது, மன்னிக்கவும், நான் தாமதமாக வந்துவிட்டேன்.",
+   "தவறு செய்தால் தயங்காமல் மன்னிப்பு கேளுங்கள்."
+  ],
+  "facts": ["Used to apologise for a mistake.", "It can also express sympathy: I am sorry to hear that."],
+  "links": []
+ },
+ {
+  "id": "excuse-me",
+  "theme": "courtesy",
+  "title": "Excuse me — மன்னிக்கவும்",
+  "title_en": "Excuse me",
+  "topic": "chat",
+  "photo": "person gently getting someone's attention",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: Excuse me.",
+   "இதன் தமிழ் பொருள்: மன்னிக்கவும், கொஞ்சம் கேட்கலாமா.",
+   "எடுத்துக்காட்டு: Excuse me, where is the bus stop? அதாவது, மன்னிக்கவும், பஸ் நிலையம் எங்கே?",
+   "யாரிடம் வழி கேட்கும்போது இதை முதலில் சொல்லுங்கள்."
+  ],
+  "facts": ["Used to politely get attention or interrupt.", "Different from I am sorry, which is a full apology."],
+  "links": []
+ },
+ {
+  "id": "how-are-you",
+  "theme": "small talk",
+  "title": "How are you? — நீங்கள் எப்படி இருக்கிறீர்கள்?",
+  "title_en": "How are you?",
+  "topic": "chat",
+  "photo": "two friends chatting happily",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: How are you?",
+   "இதன் தமிழ் பொருள்: நீங்கள் எப்படி இருக்கிறீர்கள்?",
+   "எடுத்துக்காட்டு: Hello Ravi, how are you? அதாவது, வணக்கம் ரவி, எப்படி இருக்கிறீர்கள்?",
+   "நண்பர்களை சந்திக்கும்போது இதைக் கேட்டு உரையாடலைத் தொடங்குங்கள்."
+  ],
+  "facts": ["A common friendly greeting.", "Usual reply: I am fine, thank you. And you?"],
+  "links": []
+ },
+ {
+  "id": "i-am-fine",
+  "theme": "small talk",
+  "title": "I am fine — நான் நலமாக இருக்கிறேன்",
+  "title_en": "I am fine",
+  "topic": "chat",
+  "photo": "person smiling and giving a thumbs up",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: I am fine, thank you.",
+   "இதன் தமிழ் பொருள்: நான் நலமாக இருக்கிறேன், நன்றி.",
+   "எடுத்துக்காட்டு: I am fine, thank you. And you? அதாவது, நான் நலம், நன்றி. நீங்கள்?",
+   "யாராவது எப்படி இருக்கிறீர்கள் என்று கேட்டால் இப்படி பதில் சொல்லுங்கள்."
+  ],
+  "facts": ["A standard reply to How are you?", "Adding And you? keeps the conversation going."],
+  "links": []
+ },
+ {
+  "id": "what-is-your-name",
+  "theme": "introductions",
+  "title": "What is your name? — உங்கள் பெயர் என்ன?",
+  "title_en": "What is your name?",
+  "topic": "chat",
+  "photo": "two people introducing themselves",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: What is your name?",
+   "இதன் தமிழ் பொருள்: உங்கள் பெயர் என்ன?",
+   "எடுத்துக்காட்டு: What is your name, please? அதாவது, தயவுசெய்து உங்கள் பெயர் என்ன?",
+   "புதியவர்களை சந்திக்கும்போது மரியாதையாக இதைக் கேளுங்கள்."
+  ],
+  "facts": ["Used to ask someone's name.", "Polite form: May I know your name?"],
+  "links": []
+ },
+ {
+  "id": "my-name-is",
+  "theme": "introductions",
+  "title": "My name is — என் பெயர்",
+  "title_en": "My name is",
+  "topic": "chat",
+  "photo": "person introducing himself confidently",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: My name is Kumar.",
+   "இதன் தமிழ் பொருள்: என் பெயர் குமார்.",
+   "எடுத்துக்காட்டு: Hello, my name is Kumar. Nice to meet you. அதாவது, வணக்கம், என் பெயர் குமார். உங்களைச் சந்தித்ததில் மகிழ்ச்சி.",
+   "புதிய இடத்தில் உங்களை அறிமுகப்படுத்திக்கொள்ள இதைப் பயன்படுத்துங்கள்."
+  ],
+  "facts": ["Standard self-introduction phrase.", "Short form in casual speech: I am Kumar."],
+  "links": []
+ },
+ {
+  "id": "nice-to-meet-you",
+  "theme": "introductions",
+  "title": "Nice to meet you — உங்களைச் சந்தித்ததில் மகிழ்ச்சி",
+  "title_en": "Nice to meet you",
+  "topic": "chat",
+  "photo": "people shaking hands at a meeting",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: Nice to meet you.",
+   "இதன் தமிழ் பொருள்: உங்களைச் சந்தித்ததில் மகிழ்ச்சி.",
+   "எடுத்துக்காட்டு: Nice to meet you, sir. அதாவது, உங்களைச் சந்தித்ததில் மகிழ்ச்சி ஐயா.",
+   "முதல் முறை சந்திக்கும்போது கை குலுக்கி இதைச் சொல்லுங்கள்."
+  ],
+  "facts": ["Said when meeting someone for the first time.", "Afterwards use Nice to see you again."],
+  "links": []
+ },
+ {
+  "id": "where-are-you-from",
+  "theme": "small talk",
+  "title": "Where are you from? — நீங்கள் எங்கிருந்து?",
+  "title_en": "Where are you from?",
+  "topic": "chat",
+  "photo": "people talking about their home town",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: Where are you from?",
+   "இதன் தமிழ் பொருள்: நீங்கள் எங்கிருந்து வந்தவர்?",
+   "எடுத்துக்காட்டு: Where are you from, Meena? அதாவது, மீனா, நீங்கள் எங்கிருந்து வந்தவர்?",
+   "புதிய நண்பரின் ஊரை அறிய இதைக் கேளுங்கள்."
+  ],
+  "facts": ["Asks about someone's home town or country.", "Reply: I am from Chennai."],
+  "links": []
+ },
+ {
+  "id": "i-am-from",
+  "theme": "small talk",
+  "title": "I am from — நான் இங்கிருந்து",
+  "title_en": "I am from",
+  "topic": "chat",
+  "photo": "city skyline of chennai india",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: I am from India.",
+   "இதன் தமிழ் பொருள்: நான் இந்தியாவைச் சேர்ந்தவன்.",
+   "எடுத்துக்காட்டு: I am from Chennai, Tamil Nadu. அதாவது, நான் தமிழ்நாடு, சென்னையைச் சேர்ந்தவன்.",
+   "உங்கள் ஊரைப் பெருமையுடன் ஆங்கிலத்தில் சொல்லப் பழகுங்கள்."
+  ],
+  "facts": ["States your home town or country.", "You can name the city first, then the state."],
+  "links": []
+ },
+ {
+  "id": "how-much-is-this",
+  "theme": "shopping",
+  "title": "How much is this? — இதன் விலை என்ன?",
+  "title_en": "How much is this?",
+  "topic": "consumer",
+  "photo": "market shop with price tags",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: How much is this?",
+   "இதன் தமிழ் பொருள்: இதன் விலை என்ன?",
+   "எடுத்துக்காட்டு: Excuse me, how much is this shirt? அதாவது, மன்னிக்கவும், இந்த சட்டையின் விலை என்ன?",
+   "கடையில் விலை கேட்க இதைப் பயன்படுத்துங்கள்."
+  ],
+  "facts": ["Used to ask the price of an item.", "Also correct: How much does it cost?"],
+  "links": []
+ },
+ {
+  "id": "too-expensive",
+  "theme": "shopping",
+  "title": "It is too expensive — இது விலை அதிகம்",
+  "title_en": "It is too expensive",
+  "topic": "consumer",
+  "photo": "person comparing prices in a shop",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: It is too expensive.",
+   "இதன் தமிழ் பொருள்: இது மிகவும் விலை அதிகம்.",
+   "எடுத்துக்காட்டு: It is too expensive. Can you reduce the price? அதாவது, இது விலை அதிகம். விலையைக் குறைக்க முடியுமா?",
+   "விலை அதிகம் என்றால் இப்படி நிதானமாக சொல்லுங்கள்."
+  ],
+  "facts": ["A polite way to say the price is high.", "Too expensive means more than you want to pay."],
+  "links": []
+ },
+ {
+  "id": "please-help-me",
+  "theme": "help",
+  "title": "Please help me — தயவுசெய்து உதவுங்கள்",
+  "title_en": "Please help me",
+  "topic": "chat",
+  "photo": "person helping another person",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: Please help me.",
+   "இதன் தமிழ் பொருள்: தயவுசெய்து எனக்கு உதவுங்கள்.",
+   "எடுத்துக்காட்டு: Please help me find the railway station. அதாவது, ரயில் நிலையத்தைக் கண்டுபிடிக்க தயவுசெய்து உதவுங்கள்.",
+   "உதவி தேவைப்படும்போது தயங்காமல் கேளுங்கள்."
+  ],
+  "facts": ["A direct but polite request for help.", "Add please to keep it courteous."],
+  "links": []
+ },
+ {
+  "id": "i-dont-understand",
+  "theme": "help",
+  "title": "I do not understand — எனக்கு புரியவில்லை",
+  "title_en": "I do not understand",
+  "topic": "chat",
+  "photo": "person looking confused while talking",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: I do not understand.",
+   "இதன் தமிழ் பொருள்: எனக்கு புரியவில்லை.",
+   "எடுத்துக்காட்டு: I do not understand. Can you repeat, please? அதாவது, எனக்கு புரியவில்லை. மீண்டும் சொல்ல முடியுமா?",
+   "புரியாதபோது மறைக்காமல் இப்படி சொல்லுங்கள்."
+  ],
+  "facts": ["Said when something is not clear.", "Casual short form: I don't understand."],
+  "links": []
+ },
+ {
+  "id": "can-you-speak-slowly",
+  "theme": "help",
+  "title": "Can you speak slowly? — மெதுவாக பேச முடியுமா?",
+  "title_en": "Can you speak slowly?",
+  "topic": "chat",
+  "photo": "two people in slow conversation",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: Can you speak slowly?",
+   "இதன் தமிழ் பொருள்: நீங்கள் மெதுவாக பேச முடியுமா?",
+   "எடுத்துக்காட்டு: Sorry, can you speak slowly, please? அதாவது, மன்னிக்கவும், தயவுசெய்து மெதுவாக பேச முடியுமா?",
+   "வேகமாக பேசுபவரிடம் இதைக் கேளுங்கள்."
+  ],
+  "facts": ["Asks someone to talk more slowly.", "Also useful: Can you repeat that?"],
+  "links": []
+ },
+ {
+  "id": "see-you-tomorrow",
+  "theme": "parting",
+  "title": "See you tomorrow — நாளை சந்திப்போம்",
+  "title_en": "See you tomorrow",
+  "topic": "chat",
+  "photo": "friends waving goodbye at a gate",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: See you tomorrow.",
+   "இதன் தமிழ் பொருள்: நாளை சந்திப்போம்.",
+   "எடுத்துக்காட்டு: Bye Ravi, see you tomorrow. அதாவது, பை ரவி, நாளை சந்திப்போம்.",
+   "விடைபெறும்போது இதைச் சொல்லி பிரியுங்கள்."
+  ],
+  "facts": ["A friendly way to say goodbye until next time.", "Short casual form: See you!"],
+  "links": []
+ },
+ {
+  "id": "have-a-nice-day",
+  "theme": "parting",
+  "title": "Have a nice day — இனிய நாள்",
+  "title_en": "Have a nice day",
+  "topic": "chat",
+  "photo": "sunny morning street with happy people",
+  "lines": [
+   "இன்றைய ஆங்கில வாக்கியம்: Have a nice day.",
+   "இதன் தமிழ் பொருள்: உங்களுக்கு இனிய நாள் அமையட்டும்.",
+   "எடுத்துக்காட்டு: Thank you, have a nice day! அதாவது, நன்றி, இனிய நாள் அமையட்டும்!",
+   "வாடிக்கையாளரிடமோ நண்பரிடமோ விடைபெறும்போது சொல்லுங்கள்."
+  ],
+  "facts": ["A warm wish used when parting.", "Common in shops and offices."],
+  "links": []
+ }
+]

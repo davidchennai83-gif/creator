@@ -1,7 +1,8 @@
 import sqlite3
 import json
+from pathlib import Path
 
-conn = sqlite3.connect(r'G:\my_tool\creator-platform\backend\creator_platform.db')
+conn = sqlite3.connect(Path(__file__).with_name('creator_platform.db'))
 cursor = conn.cursor()
 
 events = [

@@ -6,6 +6,8 @@ interface Session { access_token: string; user: User }
 const baseURL = import.meta.env.VITE_API_URL || '/api/v1';
 const sessionClient = axios.create({baseURL, withCredentials: true, timeout: 15000});
 const apiClient = axios.create({baseURL, withCredentials: true, timeout: 15000});
+// Public catalogue (no sign-in); used by the standalone /finds landing page.
+export const publicClient = axios.create({baseURL, timeout: 15000});
 let pendingRefresh: Promise<void> | null = null;
 
 function acceptSession(data: Session) { useAuthStore.getState().setSession(data.user, data.access_token); }
@@ -32,6 +34,18 @@ apiClient.interceptors.response.use(r => r, async (error: AxiosError) => {
   }
   throw error;
 });
+export async function downloadBlob(path: string, filename: string) {
+  const response = await apiClient.get(path, { responseType: 'blob' });
+  const url = URL.createObjectURL(response.data);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export function errorMessage(error: unknown) {
   if (axios.isAxiosError(error)) {
     const body = error.response?.data;
@@ -43,6 +57,6 @@ export function errorMessage(error: unknown) {
 export const authService = {
   async login(data: {email: string; password: string}) { const r = await sessionClient.post<Envelope<Session>>('/auth/login', data); acceptSession(r.data.data); },
   async register(data: {email: string; password: string; username: string}) { const r = await sessionClient.post<Envelope<Session>>('/auth/register', data); acceptSession(r.data.data); },
-  async logout() { await apiClient.post('/auth/logout'); useAuthStore.getState().clear(); },
+  async logout() { try { await apiClient.post('/auth/logout'); } finally { useAuthStore.getState().clear(); } },
 };
 export default apiClient;

@@ -3,11 +3,12 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from sqlalchemy import text
 from redis.asyncio import Redis
+from app import finds
 from app.config.settings import settings, PROJECT_DIR
 from app.database.engine import engine, sync_engine
 from app.api.routes import api_router
@@ -22,13 +23,19 @@ async def lifespan(app):
     from app.video_creator.jobs import recover
     await asyncio.to_thread(recover)
     from app.video_creator.schedules import start_worker
-    scheduler_stop, scheduler_thread = start_worker()
+    from app.voice import agent as voice_agent
+    scheduler_stop = scheduler_thread = None
+    if settings.BACKGROUND_WORKERS:
+        scheduler_stop, scheduler_thread = start_worker()
+        await asyncio.to_thread(voice_agent.start)
     # Schema is managed by Alembic; API docs remain available during database outages.
     try:
         yield
     finally:
-        scheduler_stop.set()
-        await asyncio.to_thread(scheduler_thread.join, 35)
+        if settings.BACKGROUND_WORKERS:
+            voice_agent.stop()
+            scheduler_stop.set()
+            await asyncio.to_thread(scheduler_thread.join, 35)
         await engine.dispose()
         await asyncio.to_thread(sync_engine.dispose)
 
@@ -64,6 +71,19 @@ def create_app():
         healthy = checks["database"] and checks["redis"] is not False
         return JSONResponse({"status": "ready" if healthy else "not_ready", "checks": checks}, status_code=200 if healthy else 503)
 
+    @app.get("/go/{product_id}", include_in_schema=False)
+    async def go(product_id: str, request: Request, p: str = "direct"):
+        """Record a Meesho click, then hand the shopper to the affiliate link."""
+        product = await asyncio.to_thread(
+            finds.record_click, product_id, p,
+            request.headers.get("referer", ""), request.headers.get("user-agent", ""),
+            request.client.host if request.client else "")
+        if not product:
+            raise HTTPException(404, "This product is no longer available")
+        response = RedirectResponse(product["affiliate_url"], status_code=302)
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
     @app.get("/{path:path}", include_in_schema=False)
     async def web(path: str):
         if path == "api" or path.startswith("api/"):
@@ -83,4 +103,15 @@ def create_app():
     return app
 
 
-app = create_app()
+# The recorder agent talks to us over Socket.IO (/socket.io), which must be
+# handled before FastAPI's catch-all route. ASGIApp delegates anything that is
+# not a Socket.IO request to the wrapped FastAPI app, so HTTP behaviour and the
+# OpenAPI docs are unchanged.
+_fastapi_app = create_app()
+
+try:
+    from app.recorder.socket_server import asgi_app as _socketio_app
+    app = _socketio_app(_fastapi_app)
+except ImportError:  # python-socketio not installed — HTTP still works
+    logging.getLogger(__name__).warning("python-socketio missing; /socket.io disabled")
+    app = _fastapi_app

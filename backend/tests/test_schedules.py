@@ -91,7 +91,9 @@ def test_api_roundtrip_and_invalid_ranges(store):
         assert result.status_code == 201
         task_id = result.json()['data']['id']
         assert client.get('/scheduler').json()['data'][0]['platforms'] == ['facebook']
-        assert len(client.get('/scheduler/projects').json()['data']) == 2
+        projects = client.get('/scheduler/projects').json()['data']
+        assert {p['id'] for p in projects if p['kind'] == 'video'} == {p['id'] for p in s.PROJECTS}
+        assert all(p['kind'] in ('video', 'automation') for p in projects)
         assert client.post('/scheduler', json=payload | {'end_date':'2026-01-01'}).status_code == 422
         assert client.post('/scheduler', json=payload | {'frequency':'weekly','weekdays':[]}).status_code == 422
         assert client.put(f'/scheduler/{task_id}', json=payload | {'name':'Updated'}).status_code == 200
@@ -102,7 +104,7 @@ def test_auto_render_reaches_mp4_in_same_job(store, monkeypatch):
     from app.video_creator import indian_law
     monkeypatch.setattr(indian_law, 'create_script', lambda *a: [{'title':'Law','lines':['தமிழ்'] * 4}])
     render_calls = []
-    monkeypatch.setattr(jobs, 'render', lambda *a: render_calls.append(a[-1]) or 120)
+    monkeypatch.setattr(jobs, 'render', lambda *a: render_calls.append(a[5]) or 120)
     job = dict(id=str(uuid4()), owner='owner', date='2026-09-18', voice='ta-IN-PallaviNeural', kind='indian-law', auto_render=True, status='writing')
     assert jobs.gate.acquire(blocking=False)
     jobs.run(job, 'script')

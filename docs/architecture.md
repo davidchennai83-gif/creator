@@ -645,14 +645,18 @@ NULL workspace_id = personal use (version 1)
 
 ```
 docker-compose.yml services:
-├── frontend (React, port 5173)
-├── backend (FastAPI, port 8000)
-├── worker (Celery worker)
-├── scheduler (Celery beat)
-├── postgres (PostgreSQL 15, port 5432)
-├── redis (Redis 7, port 6379)
-├── nginx (Reverse proxy, port 80/443)
-└── pgadmin (optional, port 5050)
+├── caddy (Edge proxy: HTTP/HTTPS termination + reverse proxy; the only
+│          published entry point — auto-HTTPS for a real domain via
+│          docker/docker-compose.https.yml)
+├── nginx (Internal reverse proxy: SPA static, API, Socket.IO upgrade paths;
+│          trusts Caddy's X-Forwarded-For via set_real_ip_from)
+├── frontend (React build, served by nginx)
+├── backend (FastAPI, port 8000, internal)
+├── migrate (alembic upgrade head)
+├── worker (Celery worker, profile "jobs")
+├── scheduler (Celery beat, profile "jobs")
+├── postgres (PostgreSQL 16)
+└── redis (Redis 7)
 ```
 
 ## 15. GPU Server Support

@@ -4,6 +4,19 @@ from time import monotonic
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
+from app.config.settings import settings
+
+
+def _client_key(request) -> str:
+    """Rate-limit key per real client. X-Forwarded-For is honoured only when the
+    deployment explicitly runs behind the bundled nginx, so a direct client can
+    never spoof its own key."""
+    if settings.TRUST_PROXY:
+        forwarded = request.headers.get("x-forwarded-for", "")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, limit=20, window=60):
@@ -13,7 +26,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request, call_next):
         if request.method == "POST" and request.url.path.startswith("/api/v1/auth/"):
-            key = request.client.host if request.client else "unknown"
+            key = _client_key(request)
             now = monotonic()
             bucket = self.buckets.setdefault(key, deque())
             self.buckets.move_to_end(key)

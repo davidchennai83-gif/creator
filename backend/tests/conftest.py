@@ -7,12 +7,16 @@ import pytest
 temporary = tempfile.TemporaryDirectory(prefix="creator-tests-")
 os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{(Path(temporary.name) / 'test.db').as_posix()}"
 os.environ["STORAGE_PATH"] = str(Path(temporary.name) / 'storage')
+# Automation projects and recordings must never touch the developer's real storage.
+os.environ["AUTOMATION_PATH"] = str(Path(temporary.name) / 'automation')
+os.environ["RECORDINGS_PATH"] = str(Path(temporary.name) / 'recorder')
 os.environ["JWT_SECRET"] = "test-access-signing-key-" + "a" * 32
 os.environ["JWT_REFRESH_SECRET"] = "test-refresh-signing-key-" + "b" * 32
 os.environ["ENVIRONMENT"] = "development"
 os.environ["COOKIE_SECURE"] = "false"
 os.environ["ALLOW_REGISTRATION"] = "true"
 os.environ["REQUIRE_REDIS"] = "false"
+os.environ["BACKGROUND_WORKERS"] = "false"
 
 from fastapi.testclient import TestClient
 from app.main import create_app

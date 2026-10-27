@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from app.utils.time import utcnow
 from uuid import UUID, uuid4
 from fastapi import HTTPException
-from sqlalchemy import or_, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from app.config.settings import settings
 from app.core.security import hash_password, verify_password, create_token_pair, decode_refresh_token
@@ -31,7 +31,12 @@ async def new_session(db, user):
 async def register(db, data):
     if not settings.ALLOW_REGISTRATION:
         raise HTTPException(403, "Registration is disabled")
-    user = User(id=uuid4(), email=str(data.email).lower(), username=data.username.lower(), display_name=data.display_name, password_hash=await asyncio.to_thread(hash_password, data.password), role=UserRole.EDITOR)
+    # The first account boots the machine owner as ADMIN; every later sign-up is a
+    # read-only VIEWER. Open registration can therefore never hand out code
+    # execution (automation/recorder) or video-rendering rights.
+    existing = await db.scalar(select(func.count()).select_from(User)) or 0
+    role = UserRole.ADMIN if existing == 0 else UserRole.VIEWER
+    user = User(id=uuid4(), email=str(data.email).lower(), username=data.username.lower(), display_name=data.display_name, password_hash=await asyncio.to_thread(hash_password, data.password), role=role)
     db.add(user)
     try:
         await db.flush()

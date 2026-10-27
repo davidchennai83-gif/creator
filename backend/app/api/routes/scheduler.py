@@ -1,6 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from app.api.deps import editor, get_current_user
+from app.automation import store as automation_store
 from app.schemas.common import success
 from app.video_creator import schedules
 
@@ -9,7 +10,13 @@ router = APIRouter()
 
 @router.get('/projects')
 def projects(user=Depends(get_current_user)):
-    return success(schedules.PROJECTS)
+    video = [{'id': p['id'], 'name': p['name'], 'description': p['description'], 'kind': 'video'}
+             for p in schedules.PROJECTS]
+    automation = [{'id': schedules.AUTOMATION_PREFIX + p['name'], 'name': p['name'],
+                   'description': f'Playwright automation · {len(p["files"])} script file(s)',
+                   'kind': 'automation', 'files': p['files']}
+                  for p in automation_store.list_projects()]
+    return success(video + automation)
 
 
 @router.get('')

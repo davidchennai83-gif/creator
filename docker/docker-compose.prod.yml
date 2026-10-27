@@ -1,4 +1,8 @@
 # Overlay; certificates must be supplied at nginx/certs/.
+# DEPRECATED: superseded by docker/docker-compose.https.yml, where Caddy manages
+# certificates automatically (no cert files). If you still want manual certs,
+# disable the Caddy edge or nginx will loop behind it:
+#   docker compose -f docker-compose.yml -f docker/docker-compose.prod.yml up -d --scale caddy=0
 services:
   backend:
     environment:

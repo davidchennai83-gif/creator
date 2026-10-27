@@ -1,0 +1,470 @@
+[
+ {
+  "id": "freelance-writing",
+  "title": "Freelance writing",
+  "title_ta": "எழுத்து வேலை (ஃப்ரீலான்ஸ்)",
+  "topic": "pen",
+  "photo": "laptop writing desk",
+  "facts": [
+   "People who write well in Tamil or English can earn by writing blogs, website copy and ad lines for clients.",
+   "Freelance marketplaces such as Upwork and Fiverr connect writers with clients; fees and payment methods differ by platform.",
+   "Beginners usually start with small paid tasks and build a portfolio of samples.",
+   "Copying other people's writing is plagiarism, and freelance income is taxable in India, so keep records."
+  ],
+  "links": [
+   {
+    "title": "Upwork — freelance marketplace",
+    "link": "https://www.upwork.com/"
+   },
+   {
+    "title": "Fiverr — freelance marketplace",
+    "link": "https://www.fiverr.com/"
+   }
+  ]
+ },
+ {
+  "id": "canva-design",
+  "title": "Design work with Canva",
+  "title_ta": "கேன்வா டிசைன் வேலை",
+  "topic": "pen",
+  "photo": "graphic design tablet desk",
+  "facts": [
+   "Simple design tools like Canva let beginners make posters, logos and social media graphics.",
+   "A portfolio page on Instagram or Behance helps show samples to potential clients.",
+   "Small shops and local businesses often need posters, menus and social media designs.",
+   "Use only licensed images and fonts, otherwise the client can face copyright problems."
+  ],
+  "links": []
+ },
+ {
+  "id": "video-editing",
+  "title": "Video editing",
+  "title_ta": "வீடியோ எடிட்டிங்",
+  "topic": "play",
+  "photo": "video editing timeline computer",
+  "facts": [
+   "Reels creators and YouTubers often hire editors for cutting, captions and thumbnails.",
+   "Beginners can practise with free editing apps and build three or four sample videos.",
+   "Editors usually find first clients by contacting small creators directly and showing samples.",
+   "Meeting deadlines and communicating clearly is what brings repeat orders."
+  ],
+  "links": []
+ },
+ {
+  "id": "web-services",
+  "title": "Building websites for small businesses",
+  "title_ta": "கடைகளுக்கு வெப்சைட் செஞ்சு தர்றது",
+  "topic": "technology",
+  "photo": "web developer laptop",
+  "facts": [
+   "Many local shops and small businesses still have no website.",
+   "A beginner can learn WordPress or basic web development and build a demo site to show clients.",
+   "Domain, hosting and monthly maintenance can give recurring income.",
+   "Get the scope in writing and take an advance before starting work."
+  ],
+  "links": []
+ },
+ {
+  "id": "translation",
+  "title": "Translation work",
+  "title_ta": "மொழிபெயர்ப்பு வேலை",
+  "topic": "pen",
+  "photo": "books dictionary desk",
+  "facts": [
+   "People who know Tamil and English well can offer translation for subtitles, websites and documents.",
+   "There is steady demand for Tamil subtitles and localisation for videos and apps.",
+   "A few sample translations make a simple portfolio for new clients.",
+   "Pasting raw machine translation without checking hurts quality and your reputation."
+  ],
+  "links": []
+ },
+ {
+  "id": "voice-over",
+  "title": "Voice-over work",
+  "title_ta": "குரல் கொடுக்கும் வேலை",
+  "topic": "mic",
+  "photo": "podcast microphone studio",
+  "facts": [
+   "Tamil voice-over is needed for ads, YouTube videos, e-learning and audio content.",
+   "A decent microphone and a quiet room are the basic requirements for clean recordings.",
+   "Voice artists usually share a short demo reel with clients.",
+   "Never use another person's voice without their permission."
+  ],
+  "links": []
+ },
+ {
+  "id": "social-media",
+  "title": "Social media management for local shops",
+  "title_ta": "சோஷியல் மீடியா மேனேஜர்",
+  "topic": "phone",
+  "photo": "smartphone social media",
+  "facts": [
+   "Many local businesses want someone to run their Instagram or Facebook page.",
+   "A free trial on one page, with before and after results, can win the first client.",
+   "Work is often billed as a fixed monthly fee.",
+   "Promise only what you can deliver and explain clearly what you will do."
+  ],
+  "links": []
+ },
+ {
+  "id": "online-tutoring",
+  "title": "Online tutoring",
+  "title_ta": "ஆன்லைன் டியூஷன்",
+  "topic": "education",
+  "photo": "online class laptop",
+  "facts": [
+   "People who explain well can teach school subjects, spoken English or software skills online.",
+   "Start with friends and acquaintances, then move to tutoring platforms or your own batches.",
+   "Choose the subject you know best and fix regular class timings.",
+   "For children, get parents' permission and keep classes transparent and safe."
+  ],
+  "links": []
+ },
+ {
+  "id": "online-course",
+  "title": "Selling an online course",
+  "title_ta": "ஆன்லைன் கோர்ஸ் விக்கிறது",
+  "topic": "education",
+  "photo": "laptop online course",
+  "facts": [
+   "A skill you know well can be packaged as a recorded course.",
+   "Pick one narrow topic and teach it step by step in short videos.",
+   "Courses can be listed on platforms such as Udemy or sold directly to your own audience.",
+   "Income is not instant, but one course can keep selling for a long time."
+  ],
+  "links": []
+ },
+ {
+  "id": "digital-products",
+  "title": "Selling digital products",
+  "title_ta": "டிஜிட்டல் பொருட்கள் விக்கிறது",
+  "topic": "laptop",
+  "photo": "notebook planner desk",
+  "facts": [
+   "Templates, study notes and planners are digital products made once and sold many times.",
+   "The best products solve a specific problem for a specific group of people.",
+   "They can be promoted on Instagram or Telegram and delivered as files.",
+   "Copying someone else's content to sell it creates copyright problems."
+  ],
+  "links": []
+ },
+ {
+  "id": "youtube",
+  "title": "YouTube channel",
+  "title_ta": "யூடியூப் சேனல்",
+  "topic": "play",
+  "photo": "camera video creator",
+  "facts": [
+   "A YouTube channel can earn from ads, memberships, sponsorships and affiliate links.",
+   "Choose one topic and upload consistently, for example two or three videos a week.",
+   "YouTube sets minimum requirements before a channel can earn from ads, and these rules change over time.",
+   "Most channels earn nothing for the first several months, so patience matters."
+  ],
+  "links": [
+   {
+    "title": "YouTube Help Center",
+    "link": "https://support.google.com/youtube"
+   }
+  ]
+ },
+ {
+  "id": "blogging",
+  "title": "Blogging and ad income",
+  "title_ta": "ப்ளாக் எழுதி வருமானம்",
+  "topic": "pen",
+  "photo": "blogging laptop coffee",
+  "facts": [
+   "A blog can earn from display ads, affiliate links and sponsored posts.",
+   "Choose one topic and write genuinely useful, original articles.",
+   "Ad programmes such as Google AdSense have approval rules and content policies.",
+   "Growth takes months, and copied content can get an account banned."
+  ],
+  "links": []
+ },
+ {
+  "id": "reels-collab",
+  "title": "Instagram Reels and brand collaborations",
+  "title_ta": "இன்ஸ்டா ரீல்ஸ் & பிராண்ட் கொலாப்",
+  "topic": "phone",
+  "photo": "smartphone influencer filming",
+  "facts": [
+   "Creators who build an engaged audience in one niche can work with brands.",
+   "Niches such as food, tech and fashion are common starting points.",
+   "Even small creators can pitch small local brands directly.",
+   "Paid promotions must be disclosed clearly under advertising rules."
+  ],
+  "links": []
+ },
+ {
+  "id": "affiliate",
+  "title": "Affiliate marketing",
+  "title_ta": "அஃபிலியேட் மார்க்கெட்டிங்",
+  "topic": "chart",
+  "photo": "online shopping package",
+  "facts": [
+   "Affiliate marketers earn a commission when someone buys through their tracked link.",
+   "Programmes such as Amazon Associates India provide links after you join.",
+   "Honest reviews of products you have actually used build audience trust.",
+   "Affiliate links must be disclosed; hiding them breaks programme rules."
+  ],
+  "links": [
+   {
+    "title": "Amazon Associates India",
+    "link": "https://affiliate-program.amazon.in/"
+   }
+  ]
+ },
+ {
+  "id": "reselling",
+  "title": "Reselling products",
+  "title_ta": "ரீசெல்லிங் பிசினஸ்",
+  "topic": "consumer",
+  "photo": "online shopping package",
+  "facts": [
+   "Reselling means selling other suppliers' products and keeping the margin, often without holding stock.",
+   "Reselling apps and WhatsApp groups are common ways to find customers.",
+   "Your profit is the price you add, so price carefully.",
+   "Plan for returns, delivery delays and customer complaints in advance."
+  ],
+  "links": []
+ },
+ {
+  "id": "tiffin",
+  "title": "Home tiffin and meals service",
+  "title_ta": "வீட்டு டிபன் பிசினஸ்",
+  "topic": "food",
+  "photo": "south indian food meals",
+  "facts": [
+   "People who cook well can supply tiffin or meals to offices, hostels and neighbours.",
+   "Nearby offices, hostels and PG accommodations are natural first customers.",
+   "Food businesses in India need FSSAI registration or a licence depending on their size.",
+   "Hygiene, taste and punctuality bring repeat customers through word of mouth."
+  ],
+  "links": [
+   {
+    "title": "FSSAI — official site",
+    "link": "https://www.fssai.gov.in/"
+   }
+  ]
+ },
+ {
+  "id": "snacks-pickle",
+  "title": "Homemade pickle, podi and snacks brand",
+  "title_ta": "ஊறுகாய், பொடி, ஸ்நாக்ஸ் பிராண்ட்",
+  "topic": "food",
+  "photo": "pickle jars spices",
+  "facts": [
+   "Homemade pickles, podis and snacks have a steady market in India.",
+   "Start small, give samples to people you know and collect honest feedback.",
+   "Good packaging, a clear label and a brand name help you sell online too.",
+   "FSSAI rules and correct label information must be followed."
+  ],
+  "links": [
+   {
+    "title": "FSSAI — official site",
+    "link": "https://www.fssai.gov.in/"
+   }
+  ]
+ },
+ {
+  "id": "handmade",
+  "title": "Handmade crafts and jewellery",
+  "title_ta": "கைவினைப் பொருட்கள்",
+  "topic": "craft",
+  "photo": "handmade crafts jewellery",
+  "facts": [
+   "Handmade jewellery, decor and gift items sell well online and at exhibitions.",
+   "Clear product photos on Instagram help attract orders.",
+   "Price should cover materials, your time and a profit margin.",
+   "Weekly markets and craft fairs are another way to sell locally."
+  ],
+  "links": []
+ },
+ {
+  "id": "photography",
+  "title": "Event photography",
+  "title_ta": "போட்டோகிராபி",
+  "topic": "camera",
+  "photo": "photographer camera",
+  "facts": [
+   "Events such as weddings, birthdays and functions need photographers.",
+   "Build a portfolio by shooting friends' and family events first.",
+   "Editing and album design can be added as paid services.",
+   "Write down deliverables and delivery dates in an agreement."
+  ],
+  "links": []
+ },
+ {
+  "id": "mobile-repair",
+  "title": "Mobile phone repair",
+  "title_ta": "மொபைல் ரிப்பேர்",
+  "topic": "wrench",
+  "photo": "mobile phone repair",
+  "facts": [
+   "Phones always need repairs, which makes repair a steady skill-based trade.",
+   "Get proper training and work in a repair shop first to gain experience.",
+   "Screen and battery replacements are common, quick jobs.",
+   "Use good quality spare parts and respect customers' personal data."
+  ],
+  "links": []
+ },
+ {
+  "id": "delivery",
+  "title": "Delivery partner (part-time)",
+  "title_ta": "டெலிவரி பார்ட்னர்",
+  "topic": "delivery",
+  "photo": "delivery scooter city",
+  "facts": [
+   "Food and parcel delivery apps hire part-time delivery partners.",
+   "A valid driving licence and vehicle documents are required.",
+   "Earnings depend on the number of orders, and fuel and maintenance costs must be subtracted.",
+   "Wear a helmet and ride safely; safety matters more than speed."
+  ],
+  "links": []
+ },
+ {
+  "id": "ride-driver",
+  "title": "Ride-hailing driver",
+  "title_ta": "ஓட்டுநர் வேலை",
+  "topic": "delivery",
+  "photo": "car driver steering wheel",
+  "facts": [
+   "Ride-hailing apps let drivers earn by taking trips in their own or leased vehicles.",
+   "Commercial vehicle permits, licence and insurance rules must be checked first.",
+   "Peak hours usually pay more, but fuel and maintenance reduce the take-home income.",
+   "Fatigue is dangerous; rest is part of the job."
+  ],
+  "links": []
+ },
+ {
+  "id": "sell-used",
+  "title": "Selling used items",
+  "title_ta": "பழைய பொருள் விக்கிறது",
+  "topic": "coin",
+  "photo": "used items marketplace",
+  "facts": [
+   "Unused items at home such as phones, furniture and books can be sold for cash.",
+   "Marketplaces such as OLX and Facebook Marketplace let you list items with photos and a price.",
+   "Meet buyers in a public place and prefer safe payment methods.",
+   "Never share OTPs or PINs; buyers who ask for them are scammers."
+  ],
+  "links": []
+ },
+ {
+  "id": "excel-data",
+  "title": "Excel and data work for small businesses",
+  "title_ta": "எக்செல் & டேட்டா வேலை",
+  "topic": "laptop",
+  "photo": "spreadsheet laptop",
+  "facts": [
+   "Small businesses need help with billing sheets, stock lists and monthly accounts in Excel.",
+   "Start with tasks you already know well, such as billing and stock tracking.",
+   "One good template can be adapted for many shops.",
+   "Any data-entry job that asks you to pay a registration fee is a scam."
+  ],
+  "links": []
+ },
+ {
+  "id": "upskill-salary",
+  "title": "Upskill to raise your salary",
+  "title_ta": "ஸ்கில் வளத்து சம்பளம் ஏத்து",
+  "topic": "chart",
+  "photo": "office career growth",
+  "facts": [
+   "If you already have a job, learning an in-demand skill can raise your earning power.",
+   "Pick a skill with clear demand in job listings and practise a little every day.",
+   "Turn what you learn into a small project and add it to your resume.",
+   "In salary discussions, describe your work with concrete results and numbers."
+  ],
+  "links": []
+ },
+ {
+  "id": "budget",
+  "title": "Make a budget",
+  "title_ta": "பட்ஜெட் போடு",
+  "topic": "wallet",
+  "photo": "budget calculator notebook",
+  "facts": [
+   "Controlling spending matters as much as earning more.",
+   "A common rule of thumb splits income into needs, wants and savings, for example 50, 30 and 20 percent.",
+   "It is only a guideline; adjust it to your own situation.",
+   "Tracking expenses for one month shows where money is leaking."
+  ],
+  "links": []
+ },
+ {
+  "id": "emergency-fund",
+  "title": "Build an emergency fund",
+  "title_ta": "அவசர நிதி",
+  "topic": "wallet",
+  "photo": "piggy bank savings",
+  "facts": [
+   "An emergency fund covers job loss, medical bills or sudden repairs.",
+   "A common guideline is three to six months of essential expenses.",
+   "Keep it in an easy-access savings account.",
+   "Do not put emergency money into risky investments that can lose value."
+  ],
+  "links": []
+ },
+ {
+  "id": "sip",
+  "title": "Investing through SIP",
+  "title_ta": "எஸ்ஐபி முதலீடு",
+  "topic": "chart",
+  "photo": "investment chart growth",
+  "facts": [
+   "A Systematic Investment Plan invests a fixed amount regularly into a mutual fund.",
+   "Mutual fund returns are linked to markets, are not guaranteed, and can be negative.",
+   "Complete KYC and invest only through regulated platforms.",
+   "SIP is for long-term goals; it is not a way to get rich quickly."
+  ],
+  "links": [
+   {
+    "title": "SEBI — investor website",
+    "link": "https://investor.sebi.gov.in/"
+   }
+  ]
+ },
+ {
+  "id": "scam-double-money",
+  "title": "Scam alert: money doubling schemes",
+  "title_ta": "பணம் இரட்டிப்பு மோசடி",
+  "topic": "warning",
+  "photo": "warning sign",
+  "facts": [
+   "Schemes promising to double your money or guarantee high returns are a major red flag.",
+   "No legitimate investment can guarantee high returns with no risk.",
+   "Schemes that pay you mainly for recruiting new members are pyramid or Ponzi structures.",
+   "Before investing, verify registration with SEBI or RBI, as applicable."
+  ],
+  "links": [
+   {
+    "title": "SEBI — investor website",
+    "link": "https://investor.sebi.gov.in/"
+   },
+   {
+    "title": "RBI — official site",
+    "link": "https://www.rbi.org.in/"
+   }
+  ]
+ },
+ {
+  "id": "scam-tasks-loan-apps",
+  "title": "Scam alert: task jobs and loan apps",
+  "title_ta": "டாஸ்க் வேலை, லோன் ஆப் மோசடி",
+  "topic": "warning",
+  "photo": "smartphone screen notification",
+  "facts": [
+   "WhatsApp or Telegram jobs that pay you to like videos or complete tasks are commonly scams.",
+   "Any job that asks you to pay money before you start is a red flag.",
+   "Use only loan apps from lenders regulated by RBI, and be careful about apps asking for contacts and photos.",
+   "Report cyber fraud quickly on the national helpline 1930 or at cybercrime.gov.in."
+  ],
+  "links": [
+   {
+    "title": "National Cyber Crime Reporting Portal",
+    "link": "https://cybercrime.gov.in/"
+   }
+  ]
+ }
+]

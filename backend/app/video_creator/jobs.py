@@ -4,6 +4,7 @@ import logging
 import shutil
 import sqlite3
 import threading
+from contextlib import contextmanager
 import httpx
 import traceback
 from datetime import date
@@ -11,8 +12,8 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 from app.config.settings import settings
-from .scripts import create_script
-from .render import render
+from .registry import KINDS, create as create_video_script, finished_message
+from .render import render, cleanup_intermediates
 
 gate = threading.Lock()
 log = logging.getLogger(__name__)
@@ -24,10 +25,20 @@ def root():
     return path
 
 
+@contextmanager
 def connect():
     db = sqlite3.connect(root() / 'jobs.sqlite3', timeout=30)
-    db.execute('CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, owner TEXT NOT NULL, body TEXT NOT NULL)')
-    return db
+    try:
+        db.execute('CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, owner TEXT NOT NULL, body TEXT NOT NULL)')
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        # sqlite3.Connection's own context manager commits but never closes;
+        # without this the scheduler thread keeps the test/app DB locked.
+        db.close()
 
 
 def save(job):
@@ -69,10 +80,23 @@ def delete(job_id, owner):
 def recover():
     with connect() as db:
         for (body,) in db.execute('SELECT body FROM jobs').fetchall():
-            job = json.loads(body)
-            if job['status'] in ('writing', 'rendering'):
+            try:
+                job = json.loads(body)
+            except (TypeError, ValueError):
+                # One corrupt row must not prevent the whole server from starting.
+                log.warning('Skipping unreadable video job record')
+                continue
+            if job.get('status') in ('writing', 'rendering'):
                 job.update(status='failed', message='Server restarted during generation. Please create a new job.')
                 db.execute('UPDATE jobs SET body=? WHERE id=?', (json.dumps(job), job['id']))
+    # Sweep frame stills left over by renders that predate automatic cleanup
+    # (one interrupted portrait job could hold several GB).
+    for folder in root().iterdir():
+        if folder.is_dir() and folder.name != 'runs':
+            try:
+                cleanup_intermediates(folder)
+            except OSError:
+                log.warning('Could not clean intermediates in %s', folder)
 
 
 def launch(job, action):
@@ -97,11 +121,13 @@ def launch(job, action):
     return job
 
 
-def new(owner, day, voice, kind='history', auto_render=False, job_id=None):
-    if kind not in ('history', 'indian-law'):
+def new(owner, day, voice, kind='history', auto_render=False, job_id=None,
+        rate='+15%', pitch='+0Hz', volume='+0%', display='tamil'):
+    if kind not in KINDS:
         raise ValueError('Unknown video template')
     job = {'id': str(job_id or uuid4()), 'owner': str(owner), 'date': day.isoformat(), 'voice': voice, 'auto_render': auto_render,
-           'kind': kind, 'model': 'curated-tamil-v1' if kind == 'indian-law' else settings.HISTORY_MODEL, 'status': 'new', 'points': [], 'message': ''}
+           'kind': kind, 'model': settings.HISTORY_MODEL if kind == 'history' else 'curated-tamil-v1', 'status': 'new', 'points': [], 'message': '',
+           'rate': rate, 'pitch': pitch, 'volume': volume, 'display': display}
     return launch(job, 'script')
 
 
@@ -114,24 +140,30 @@ def run(job, action):
         folder = root() / job['id']
         folder.mkdir(exist_ok=True)
         if action == 'script':
-            if job.get('kind') == 'indian-law':
-                from .indian_law import create_script as create_law_script
-                progress('Selecting five Indian Acts for this date')
-                job['points'] = create_law_script(date.fromisoformat(job['date']), progress)
-                message = 'Five Acts ready, four Tamil lines each. Review explanations, then render.'
-            else:
-                progress('Fetching historical events and source links')
-                job['points'] = create_script(date.fromisoformat(job['date']), progress)
-                message = 'Ten Tamil summaries ready. Review sources, then render.'
+            kind = job.get('kind', 'history')
+            job['points'] = create_video_script(kind, date.fromisoformat(job['date']), progress)
+            if not job['points']:
+                raise ValueError('The script generator returned no scenes')
+            message = finished_message(kind)
+            if job.get('display') == 'tanglish':
+                from .tanglish import transliterate
+                for p in job['points']:
+                    if p.get('title'):
+                        p['title_display'] = transliterate(p['title'])
+                    p['lines_display'] = [transliterate(line) for line in p['lines']]
             job.update(status='review', message=message)
         if action == 'render' or job.get('auto_render'):
             job.update(status='rendering', message='Preparing video scenes')
             save(job)
-            job['duration'] = render(job['points'], folder, job['date'], job['voice'], progress, job.get('kind', 'history'))
+            job['duration'] = render(job['points'], folder, job['date'], job['voice'], progress, job.get('kind', 'history'),
+                                     job.get('rate', '+15%'), job.get('pitch', '+0Hz'), job.get('volume', '+0%'))
             sources = folder / 'media-sources.json'
             if sources.is_file():
                 job['media_sources'] = json.loads(sources.read_text(encoding='utf-8'))
-            job.update(status='complete', message='MP4 ready with Tamil narration and BGM')
+            subtitles = folder / 'subtitles.json'
+            if subtitles.is_file():
+                job['subtitles'] = json.loads(subtitles.read_text(encoding='utf-8'))
+            job.update(status='complete', message='MP4 ready with narrated moving scenes and clean on-screen text')
         (folder / 'script.json').write_text(json.dumps(job, ensure_ascii=False, indent=2), encoding='utf-8')
     except Exception as exc:
         log.exception('History video job %s failed', job['id'])

@@ -4,26 +4,55 @@ import json
 import logging
 import sqlite3
 import threading
+from contextlib import contextmanager
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 from . import jobs
+from app.automation import runner as automation_runner
+from app.automation import store as automation_store
 
 IST = timezone(timedelta(hours=5, minutes=30))
 PROJECTS = [{'id': 'history', 'name': 'Day of History', 'description': '10 historical events · Tamil narration'},
-            {'id': 'indian-law', 'name': 'Indian Law — Daily 5 Acts', 'description': '5 Acts · 4 Tamil lines each'}]
+            {'id': 'indian-law', 'name': 'Indian Law — Daily 5 Acts', 'description': '5 Acts · 4 Tamil lines each'},
+            {'id': 'make-money', 'name': 'How to Make Money — 5 ideas', 'description': '5 ideas · 4 Chennai-Tamil lines each'},
+            {'id': 'news', 'name': 'Tamil News — Daily 10', 'description': '10 Tamil news stories · RSS images · source credits'},
+            {'id': 'thirukkural', 'name': 'Thirukkural — Daily 2 Couplets', 'description': '2 couplets · Tamil meaning · 540-day cycle'},
+            {'id': 'english', 'name': 'Spoken English — Daily Phrases', 'description': '3 phrases · Tamil meaning · 1,140-day cycle'},
+            {'id': 'gk', 'name': 'Amazing Facts — Daily GK', 'description': '3 facts · spoken Tamil · 1,140-day cycle'},
+            {'id': 'health', 'name': 'Health Tips — Daily 3', 'description': '3 safe wellbeing tips · 1,140-day cycle'},
+            {'id': 'motivation', 'name': 'Life Lessons — Daily 3', 'description': '3 positive Tamil lessons · 1,140-day cycle'},
+            {'id': 'kids', 'name': 'Kids Learning — Daily 3', 'description': '3 Tamil basics for kids · 7,140-day cycle'},
+            {'id': 'meesho', 'name': 'Tamil Budget Finds — Daily Product', 'description': '1 Meesho budget product · price · benefits · honest caution · CTA'}]
 
 
 def now():
     return datetime.now(IST)
 
 
+AUTOMATION_PREFIX = 'automation:'
+
+
+def project_kind(project):
+    return 'automation' if project.startswith(AUTOMATION_PREFIX) else 'video'
+
+
+def validate_project(project):
+    if project.startswith(AUTOMATION_PREFIX):
+        if not automation_store.exists(project[len(AUTOMATION_PREFIX):]):
+            raise ValueError('Unknown automation project')
+        return project
+    if project in {p['id'] for p in PROJECTS}:
+        return project
+    raise ValueError('Unknown project')
+
+
 class ScheduleInput(BaseModel):
     model_config = ConfigDict(extra='forbid')
     name: str = Field(min_length=1, max_length=100)
-    project: Literal['history', 'indian-law']
+    project: str = Field(min_length=1, max_length=100)
     run_time: str = Field(pattern=r'^([01]\d|2[0-3]):[0-5]\d$')
     frequency: Literal['daily', 'weekly', 'monthly', 'custom']
     start_date: date
@@ -32,13 +61,14 @@ class ScheduleInput(BaseModel):
     month_day: int = Field(default=1, ge=1, le=31)
     interval_days: int = Field(default=2, ge=1, le=365)
     platforms: list[Literal['youtube', 'facebook', 'instagram']] = Field(default_factory=list, max_length=3)
-    voice: Literal['ta-IN-PallaviNeural', 'ta-IN-ValluvarNeural'] = 'ta-IN-PallaviNeural'
+    voice: Literal['ta-IN-PallaviNeural', 'ta-IN-ValluvarNeural', 'ta-LK-KumarNeural', 'ta-LK-SaranyaNeural', 'ta-MY-KaniNeural', 'ta-MY-SuryaNeural', 'ta-SG-AnbuNeural', 'ta-SG-VenbaNeural'] = 'ta-IN-PallaviNeural'
 
     @model_validator(mode='after')
     def validate_range(self):
         self.name = self.name.strip()
         if not self.name:
             raise ValueError('Task name cannot be empty')
+        validate_project(self.project)
         if self.end_date < self.start_date or (self.end_date - self.start_date).days > 3660:
             raise ValueError('Choose an end date after the start date, within ten years')
         if any(d < 0 or d > 6 for d in self.weekdays) or len(set(self.weekdays)) != len(self.weekdays):
@@ -66,10 +96,20 @@ def next_run(data, after):
     return None
 
 
+@contextmanager
 def connect():
     db = sqlite3.connect(jobs.root() / 'schedules.sqlite3', timeout=30)
-    db.execute('CREATE TABLE IF NOT EXISTS schedules (id TEXT PRIMARY KEY, owner TEXT NOT NULL, body TEXT NOT NULL)')
-    return db
+    try:
+        db.execute('CREATE TABLE IF NOT EXISTS schedules (id TEXT PRIMARY KEY, owner TEXT NOT NULL, body TEXT NOT NULL)')
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        # Committing does not release the file handle; close it so tests and
+        # backup/restore tooling can remove or replace the database.
+        db.close()
 
 
 def save(db, task):
@@ -100,9 +140,11 @@ def put(owner, data, task_id=None):
                 raise LookupError('Task not found')
             previous = json.loads(row[0])
         task = dict(previous or {}, **body)
-        task.update(id=str(task_id or uuid4()), owner=str(owner), enabled=True, next_run=upcoming,
+        # Editing a paused task must not silently resume it.
+        enabled = previous.get('enabled', True) if previous else True
+        task.update(id=str(task_id or uuid4()), owner=str(owner), enabled=enabled, next_run=upcoming,
                     timezone='Asia/Kolkata', publishing_status='connection_required' if body['platforms'] else 'gallery_only',
-                    message='Scheduled', updated_at=now().isoformat())
+                    message='Scheduled' if enabled else 'Paused', updated_at=now().isoformat())
         save(db, task)
     return task
 
@@ -158,6 +200,31 @@ def tick(current=None):
                     if not task['next_run'] or datetime.fromisoformat(task['next_run']) > current:
                         save(db, task)
                         continue
+                if project_kind(task['project']) == 'automation':
+                    # Playwright automation tasks run locally as a subprocess; video
+                    # jobs and automation runs use separate gates on this single PC.
+                    project = task['project'][len(AUTOMATION_PREFIX):]
+                    last = task.get('last_automation_run')
+                    if last:
+                        try:
+                            last_run_rec = automation_runner.get(str(last), task['owner'])
+                        except Exception:
+                            # A corrupt run log must never abort the scheduler tick.
+                            last_run_rec = None
+                        if last_run_rec and last_run_rec['status'] in ('completed', 'failed'):
+                            task['message'] = f"Automation: {last_run_rec['status']}{' (' + str(last_run_rec['exit_code']) + ')' if last_run_rec['exit_code'] is not None else ''}"
+                    if automation_runner.gate.locked():
+                        task['message'] = 'Waiting for the current automation run'
+                    else:
+                        try:
+                            run = automation_runner.run(task['owner'], project, 'main.py')
+                        except Exception as exc:
+                            task['message'] = f'Automation: {exc}'
+                        else:
+                            task.update(last_automation_run=run['id'], last_run=current.isoformat(),
+                                        message='Automation run started', next_run=next_run(task, current))
+                    save(db, task)
+                    continue
                 if jobs.gate.locked():
                     task['message'] = 'Waiting for the current video to finish'
                 else:

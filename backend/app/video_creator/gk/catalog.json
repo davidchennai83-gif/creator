@@ -1,0 +1,322 @@
+[
+ {
+  "id": "bones",
+  "theme": "human body",
+  "title": "மனித உடலின் எலும்புகள்",
+  "title_en": "Human bones",
+  "topic": "globe",
+  "photo": "human skeleton anatomy model",
+  "lines": [
+   "இன்றைய அறிய தகவல்: மனித உடலின் எலும்புகள்.",
+   "வளர்ந்த மனித உடலில் இருநூற்று ஆறு எலும்புகள் உள்ளன.",
+   "குழந்தை பிறக்கும்போது இதைவிட அதிக எலும்புகள் இருக்கும்; வளரும்போது சில இணைந்து இந்த எண்ணிக்கை ஆகும்.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["An adult human body has 206 bones.", "A newborn has more bones that later fuse together."],
+  "links": []
+ },
+ {
+  "id": "heartbeats",
+  "theme": "human body",
+  "title": "இதயம் ஒரு நாளில்",
+  "title_en": "Heartbeats a day",
+  "topic": "globe",
+  "photo": "doctor checking a heartbeat",
+  "lines": [
+   "இன்றைய அறிய தகவல்: இதயத்தின் வேலை.",
+   "நம் இதயம் ஒரு நாளில் சுமார் ஒரு லட்சம் முறை துடிக்கிறது.",
+   "இந்த துடிப்பே இரத்தத்தை உடல் முழுவதும் கொண்டு செல்கிறது.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["The heart beats roughly 100,000 times a day.", "Each beat pumps blood around the body."],
+  "links": []
+ },
+ {
+  "id": "octopus-hearts",
+  "theme": "animals",
+  "title": "ஆக்டோபஸுக்கு மூன்று இதயங்கள்",
+  "title_en": "Octopus has three hearts",
+  "topic": "globe",
+  "photo": "octopus underwater",
+  "lines": [
+   "இன்றைய அறிய தகவல்: ஆக்டோபஸ்.",
+   "கடலில் வாழும் எண்கால் உயிரியான ஆக்டோபஸுக்கு மூன்று இதயங்கள் உள்ளன.",
+   "அதன் இரத்தம் நீல நிறத்தில் இருக்கும்.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["An octopus has three hearts and blue blood.", "Two hearts pump blood to the gills, one to the body."],
+  "links": []
+ },
+ {
+  "id": "honey",
+  "theme": "food",
+  "title": "தேன் என்றும் கெடாது",
+  "title_en": "Honey never spoils",
+  "topic": "globe",
+  "photo": "jar of golden honey with honeycomb",
+  "lines": [
+   "இன்றைய அறிய தகவல்: தேன்.",
+   "நல்ல தேன் என்றும் கெடாது; ஆயிரம் ஆண்டுகள் ஆனாலும் பழுதாகாது.",
+   "தேனில் ஈரப்பதம் மிகக் குறைவு என்பதால் கிருமிகள் வளர முடியாது.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["Honey can last for thousands of years if sealed.", "Its low moisture stops bacteria from growing."],
+  "links": []
+ },
+ {
+  "id": "venus-day",
+  "theme": "space",
+  "title": "வெள்ளியில் ஒரு நாள்",
+  "title_en": "A day on Venus",
+  "topic": "globe",
+  "photo": "planet venus in space",
+  "lines": [
+   "இன்றைய அறிய தகவல்: வெள்ளிக் கோள்.",
+   "வெள்ளிக் கோளில் ஒரு நாள், அதன் ஒரு வருடத்தை விட நீளமானது.",
+   "அது தன் அச்சில் மிக மெதுவாக சுற்றுவதே இதற்குக் காரணம்.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["One day on Venus is longer than one year on Venus.", "It spins very slowly on its axis."],
+  "links": []
+ },
+ {
+  "id": "sun-distance",
+  "theme": "space",
+  "title": "சூரியனின் தொலைவு",
+  "title_en": "Distance to the Sun",
+  "topic": "globe",
+  "photo": "sun seen from space",
+  "lines": [
+   "இன்றைய அறிய தகவல்: சூரியன்.",
+   "சூரியன் பூமியிலிருந்து சுமார் பதினைந்து கோடி கிலோமீட்டர் தொலைவில் உள்ளது.",
+   "அந்த வெளிச்சம் பூமியை அடைய சுமார் எட்டு நிமிடம் ஆகும்.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["The Sun is about 150 million km from Earth.", "Sunlight takes about 8 minutes to reach us."],
+  "links": []
+ },
+ {
+  "id": "lightning-heat",
+  "theme": "science",
+  "title": "மின்னலின் வெப்பம்",
+  "title_en": "Heat of lightning",
+  "topic": "globe",
+  "photo": "lightning bolt in stormy sky",
+  "lines": [
+   "இன்றைய அறிய தகவல்: மின்னல்.",
+   "மின்னல், சூரியனின் மேற்பரப்பை விட வெப்பமானது.",
+   "ஒரே மின்னல் ஒரு நொடியில் சுற்றியுள்ள காற்றை மிக வெப்பமாக்குகிறது.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["Lightning is hotter than the surface of the Sun.", "It heats the air around it in a split second."],
+  "links": []
+ },
+ {
+  "id": "banana-berry",
+  "theme": "food",
+  "title": "வாழைப்பழம் ஒரு பெரி",
+  "title_en": "Banana is a berry",
+  "topic": "globe",
+  "photo": "bunch of ripe bananas",
+  "lines": [
+   "இன்றைய அறிய தகவல்: வாழைப்பழம்.",
+   "தாவரவியல் படி வாழைப்பழம் ஒரு வகை பெரி.",
+   "ஆனால் ஸ்ட்ராபெரி உண்மையில் பெரி அல்ல.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["Botanically, a banana is a berry.", "A strawberry is not a true berry."],
+  "links": []
+ },
+ {
+  "id": "sharks-before-trees",
+  "theme": "animals",
+  "title": "சுறாமீன்கள் மரங்களுக்கு முன்பு",
+  "title_en": "Sharks before trees",
+  "topic": "globe",
+  "photo": "shark swimming underwater",
+  "lines": [
+   "இன்றைய அறிய தகவல்: சுறாமீன்.",
+   "சுறாமீன்கள், மரங்கள் தோன்றுவதற்கு முன்பே பூமியில் வாழ்ந்தன.",
+   "அதனால் அவை மிகப் பழமையான உயிர்களில் ஒன்று.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["Sharks existed before trees appeared on Earth.", "They are among the oldest living animal groups."],
+  "links": []
+ },
+ {
+  "id": "sound-water",
+  "theme": "science",
+  "title": "ஒலி நீரில் வேகமாக",
+  "title_en": "Sound travels faster in water",
+  "topic": "globe",
+  "photo": "underwater scene with light rays",
+  "lines": [
+   "இன்றைய அறிய தகவல்: ஒலியின் வேகம்.",
+   "ஒலி காற்றை விட நீரில் வேகமாக பயணிக்கிறது.",
+   "அதனால்தான் நீருக்குள் இருக்கும் ஒலிகள் தெளிவாகக் கேட்கும்.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["Sound travels faster in water than in air.", "That is why underwater sounds carry clearly."],
+  "links": []
+ },
+ {
+  "id": "brain-water",
+  "theme": "human body",
+  "title": "மூளையும் நீரும்",
+  "title_en": "The brain is mostly water",
+  "topic": "globe",
+  "photo": "doctor studying a brain scan",
+  "lines": [
+   "இன்றைய அறிய தகவல்: மனித மூளை.",
+   "மனித மூளை சுமார் எழுபத்தைந்து சதவீதம் நீரால் ஆனது.",
+   "நீர்ச்சத்து குறைந்தால் நினைவாற்றலும் குறையும்.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["The human brain is about 75 percent water.", "Staying hydrated helps memory and focus."],
+  "links": []
+ },
+ {
+  "id": "blood-volume",
+  "theme": "human body",
+  "title": "உடலில் இரத்தம்",
+  "title_en": "Blood in the body",
+  "topic": "globe",
+  "photo": "blood donation camp",
+  "lines": [
+   "இன்றைய அறிய தகவல்: மனித இரத்தம்.",
+   "வளர்ந்த மனித உடலில் சுமார் ஐந்து லிட்டர் இரத்தம் இருக்கும்.",
+   "இந்த இரத்தம் உணவு, ஆக்சிஜன், நோய் எதிர்ப்பு சக்தி ஆகியவற்றை சுமக்கிறது.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["An adult body holds about 5 litres of blood.", "Blood carries oxygen and nutrients."],
+  "links": []
+ },
+ {
+  "id": "pacific-ocean",
+  "theme": "earth",
+  "title": "மிகப்பெரிய கடல்",
+  "title_en": "The largest ocean",
+  "topic": "globe",
+  "photo": "wide blue ocean horizon",
+  "lines": [
+   "இன்றைய அறிய தகவல்: பசிபிக் பெருங்கடல்.",
+   "பசிபிக் பெருங்கடல் உலகின் மிகப்பெரிய கடல்.",
+   "அது அனைத்து நிலப்பரப்புகளையும் சேர்த்ததை விட பெரியது.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["The Pacific is the largest ocean on Earth.", "It covers more area than all the land combined."],
+  "links": []
+ },
+ {
+  "id": "everest-growing",
+  "theme": "earth",
+  "title": "எவரெஸ்ட் உயரம் கூடுகிறது",
+  "title_en": "Mount Everest is growing",
+  "topic": "globe",
+  "photo": "snowy mountain peak everest",
+  "lines": [
+   "இன்றைய அறிய தகவல்: எவரெஸ்ட் மலை.",
+   "எவரெஸ்ட் மலை ஆண்டுதோறும் சில மில்லிமீட்டர் உயரம் கூடுகிறது.",
+   "நிலத்தட்டு நகர்வதே இதற்குக் காரணம்.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["Mount Everest grows a few millimetres each year.", "Moving tectonic plates push it upward."],
+  "links": []
+ },
+ {
+  "id": "flamboyance",
+  "theme": "animals",
+  "title": "ஃபிளமிங்கோ கூட்டம்",
+  "title_en": "A group of flamingos",
+  "topic": "globe",
+  "photo": "flock of pink flamingos in water",
+  "lines": [
+   "இன்றைய அறிய தகவல்: ஃபிளமிங்கோ.",
+   "ஃபிளமிங்கோ பறவைகளின் கூட்டத்திற்கு ஆங்கிலத்தில் ஃபிளம்பாயன்ஸ் என்று பெயர்.",
+   "அவற்றின் இளஞ்சிவப்பு நிறம், உண்ணும் உணவால் வருகிறது.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["A group of flamingos is called a flamboyance.", "Their pink colour comes from the food they eat."],
+  "links": []
+ },
+ {
+  "id": "ants-strength",
+  "theme": "animals",
+  "title": "எறும்பின் பலம்",
+  "title_en": "The strength of ants",
+  "topic": "globe",
+  "photo": "close up of an ant carrying a leaf",
+  "lines": [
+   "இன்றைய அறிய தகவல்: எறும்பு.",
+   "எறும்புகள் தங்கள் உடல் எடையை விட ஐம்பது மடங்கு எடையை தூக்க முடியும்.",
+   "அவை கூட்டாகச் சேர்ந்து மிகப் பெரிய பொருட்களையும் நகர்த்தும்.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["Ants can lift about 50 times their own weight.", "They move heavy loads by working together."],
+  "links": []
+ },
+ {
+  "id": "eiffel-summer",
+  "theme": "science",
+  "title": "ஈபெல் கோபுரம் உயரும்",
+  "title_en": "The Eiffel Tower grows",
+  "topic": "globe",
+  "photo": "eiffel tower in summer sunlight",
+  "lines": [
+   "இன்றைய அறிய தகவல்: ஈபெல் கோபுரம்.",
+   "கோடையில் ஈபெல் கோபுரம் சுமார் பதினைந்து சென்டிமீட்டர் உயரமாகும்.",
+   "வெப்பத்தால் இரும்பு விரிவடைவதே காரணம்.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["The Eiffel Tower is about 15 cm taller in summer.", "Heat makes the iron expand."],
+  "links": []
+ },
+ {
+  "id": "trees-stars",
+  "theme": "earth",
+  "title": "மரங்களும் நட்சத்திரங்களும்",
+  "title_en": "Trees and stars",
+  "topic": "globe",
+  "photo": "forest meeting the starry night sky",
+  "lines": [
+   "இன்றைய அறிய தகவல்: மரங்களும் நட்சத்திரங்களும்.",
+   "பூமியில் உள்ள மரங்களின் எண்ணிக்கை, பால்வெளியில் உள்ள நட்சத்திரங்களை விட அதிகம்.",
+   "இது நமது காடுகளின் மதிப்பைக் காட்டுகிறது.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["Earth has more trees than the Milky Way has stars.", "It shows how vital forests are."],
+  "links": []
+ },
+ {
+  "id": "chameleon-colour",
+  "theme": "animals",
+  "title": "பச்சோந்தியின் நிறம்",
+  "title_en": "Why chameleons change colour",
+  "topic": "globe",
+  "photo": "chameleon on a green branch",
+  "lines": [
+   "இன்றைய அறிய தகவல்: பச்சோந்தி.",
+   "பச்சோந்தி நிறம் மாற்றுவது ஒளிவுமறைவுக்கு மட்டும் அல்ல.",
+   "வெப்பநிலையையும் தன் உணர்வுகளையும் காட்டவே அது நிறம் மாற்றுகிறது.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["Chameleons change colour to control temperature and signal mood.", "Camouflage is only one reason."],
+  "links": []
+ },
+ {
+  "id": "water-cover",
+  "theme": "earth",
+  "title": "நீரால் சூழ்ந்த பூமி",
+  "title_en": "Water on Earth",
+  "topic": "globe",
+  "photo": "earth from space showing oceans",
+  "lines": [
+   "இன்றைய அறிய தகவல்: பூமியும் நீரும்.",
+   "பூமியின் மேற்பரப்பில் சுமார் எழுபது சதவீதம் நீரால் சூழப்பட்டுள்ளது.",
+   "ஆனால் அதில் பெரும்பகுதி உப்பு நீரே.",
+   "இதுபோன்ற அறிய தகவல்களுக்கு பின்தொடருங்கள்."
+  ],
+  "facts": ["About 70 percent of Earth's surface is water.", "Most of it is salt water in the oceans."],
+  "links": []
+ }
+]

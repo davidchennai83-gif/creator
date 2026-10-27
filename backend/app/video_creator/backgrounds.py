@@ -33,21 +33,46 @@ ART = {
     'conflict': '<path d="M400 110L580 170V290Q580 420 400 500Q220 420 220 290V170ZM400 180V420M300 265H500"/>',
     'justice': '<path d="M400 110V460M300 490H500M210 210L590 160M245 205L170 350H320ZM555 165L480 310H630ZM170 350Q245 440 320 350M480 310Q555 400 630 310"/><circle cx="400" cy="110" r="22"/>',
     'history': '<path d="M180 210L400 90L620 210ZM190 470H610M160 510H640M235 250V435M345 250V435M455 250V435M565 250V435"/>',
+    # How to Make Money icons
+    'coin': '<circle cx="400" cy="290" r="175"/><circle cx="400" cy="290" r="125"/><path d="M330 215H470M330 265H470M345 215Q455 215 455 265Q455 320 345 320L465 405"/>',
+    'play': '<rect x="170" y="150" width="460" height="300" rx="50"/><path d="M350 215V385L505 300ZM300 500H500"/>',
+    'mic': '<path d="M340 140Q340 90 400 90Q460 90 460 140V270Q460 330 400 330Q340 330 340 270ZM270 240Q270 400 400 400Q530 400 530 240M400 400V480M320 495H480"/>',
+    'camera': '<path d="M170 220H270L300 170H500L530 220H630V450H170Z"/><circle cx="400" cy="335" r="78"/><path d="M570 260H600"/>',
+    'chart': '<path d="M180 110V480H640M250 480V370M340 480V300M430 480V340M520 480V220M230 310L340 230L430 270L600 130M545 130H600V185"/>',
+    'food': '<circle cx="420" cy="320" r="150"/><circle cx="420" cy="320" r="95"/><path d="M170 120V240Q170 300 215 300Q260 300 260 240V120M215 120V500"/>',
+    'craft': '<path d="M300 340L470 100M500 340L330 100"/><circle cx="285" cy="400" r="62"/><circle cx="515" cy="400" r="62"/>',
+    'delivery': '<circle cx="250" cy="410" r="70"/><circle cx="560" cy="410" r="70"/><path d="M250 410L320 260H470L560 410M470 260L430 160H520M320 260L290 200H210M520 120H640V210H520Z"/>',
+    'wrench': '<rect x="250" y="90" width="250" height="420" rx="40"/><path d="M340 140H410M340 470H410M540 150L420 290M560 130Q610 130 610 180L560 200L540 150Z"/>',
+    'phone': '<rect x="260" y="90" width="280" height="430" rx="42"/><path d="M355 145H445M375 480H425M310 220H490M310 290H460M310 360H420"/>',
+    'warning': '<path d="M400 100L640 500H160ZM400 250V385M400 440V446"/>',
+    'wallet': '<path d="M170 210H590Q640 210 640 260V440Q640 490 590 490H220Q170 490 170 440ZM170 210L470 110H530V210"/><circle cx="565" cy="350" r="28"/>',
+    'pen': '<path d="M200 490L235 375L520 90L610 180L325 465ZM470 140L560 230M200 490L325 465M350 510H610"/>',
+    'laptop': '<path d="M230 140H570V380H230ZM150 435H650L610 380H190ZM300 210H500M300 260H460M300 310H400"/>',
+    'news': '<path d="M160 170H600V480H160ZM600 230H690Q720 230 720 260V450Q720 480 690 480H600M220 240H540M220 300H540M220 360H470M220 420H540"/>',
+    # Catalogue kinds (Thirukkural / Spoken English / Amazing Facts)
+    'book': '<path d="M170 150Q300 105 400 165Q500 105 630 150V470Q500 415 400 475Q300 415 170 470Z"/><path d="M400 165V475M210 205L350 228M210 270L350 293M210 335L350 358M450 228L590 205M450 293L590 270M450 358L590 335"/>',
+    'chat': '<path d="M170 170H620Q660 170 660 210V390Q660 430 620 430H360L250 500V430H210Q170 430 170 390ZM250 250H580M250 310H520M250 370H450"/>',
+    'globe': '<circle cx="400" cy="300" r="200"/><ellipse cx="400" cy="300" rx="200" ry="78"/><ellipse cx="400" cy="300" rx="78" ry="200"/><path d="M200 300H600M225 210Q400 260 575 210M225 390Q400 340 575 390"/>',
 }
 
 
 def illustration(point, kind, index):
+    from .theme import theme_for
     text = f"{point.get('title', '')} {point.get('text', '')}".lower()
-    topic = next((name for name, pattern in RULES if re.search(pattern, text)),
-                 'justice' if kind == 'indian-law' else 'history')
-    color = ['#5eead4', '#93c5fd', '#fcd34d', '#c4b5fd', '#fda4af'][index % 5]
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
-      <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#071628"/><stop offset="1" stop-color="#254765"/></linearGradient>
-      <radialGradient id="glow"><stop stop-color="{color}" stop-opacity=".3"/><stop offset="1" stop-color="{color}" stop-opacity="0"/></radialGradient></defs>
-      <rect width="1280" height="720" fill="url(#bg)"/>
-      <circle cx="1030" cy="310" r="490" fill="url(#glow)"/>
-      <g fill="none" stroke="{color}" stroke-opacity=".16" stroke-width="2"><circle cx="1040" cy="340" r="300"/><circle cx="1040" cy="340" r="340"/><path d="M0 650L1280 100M0 700L1280 150"/></g>
-      <g transform="translate(450 20) scale(1.05)" fill="none" stroke="{color}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity=".65">{ART[topic]}</g>
-      <g fill="{color}" opacity=".45"><circle cx="80" cy="80" r="6"/><circle cx="1180" cy="620" r="8"/><circle cx="1150" cy="85" r="4"/></g>
+    if point.get('topic') in ART:
+        topic = point['topic']  # curated kinds name their own icon
+    else:
+        topic = next((name for name, pattern in RULES if re.search(pattern, text)),
+                     {'indian-law': 'justice', 'make-money': 'coin',
+                      'meesho': 'consumer'}.get(kind, 'history'))
+    color = theme_for(kind)['accent']
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+      <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#071628"/><stop offset="1" stop-color="#254765"/></linearGradient>
+      <radialGradient id="glow"><stop stop-color="{color}" stop-opacity=".34"/><stop offset="1" stop-color="{color}" stop-opacity="0"/></radialGradient></defs>
+      <rect width="1080" height="1920" fill="url(#bg)"/>
+      <circle cx="540" cy="820" r="880" fill="url(#glow)"/>
+      <g fill="none" stroke="{color}" stroke-opacity=".16" stroke-width="2"><circle cx="540" cy="820" r="560"/><circle cx="540" cy="820" r="640"/><path d="M0 1780L1080 480M0 1880L1080 580"/></g>
+      <g transform="translate(140 640) scale(1.0)" fill="none" stroke="{color}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" opacity=".7">{ART[topic]}</g>
+      <g fill="{color}" opacity=".45"><circle cx="90" cy="140" r="9"/><circle cx="990" cy="1760" r="12"/><circle cx="990" cy="160" r="6"/><circle cx="80" cy="1720" r="7"/></g>
     </svg>'''
     return {'topic': topic, 'image': 'data:image/svg+xml;base64,' + base64.b64encode(svg.encode()).decode()}

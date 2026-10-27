@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Text, JSON
-from app.main import Base
+from app.database.base import Base
 
 
 class HistoryEvent(Base):

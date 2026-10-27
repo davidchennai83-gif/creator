@@ -1,5 +1,14 @@
 # Opening the app
 
+## Roles
+
+Registration is open by default. The **first registered account becomes ADMIN**
+(the machine owner); every later sign-up is a read-only **VIEWER**. Rendering a
+video, managing the Task Scheduler, and everything on the Automation and
+Recorder pages require **ADMIN/EDITOR** — a VIEWER can browse the dashboard and
+read their own activity logs only. For public deployments set
+`ALLOW_REGISTRATION=false` and create accounts deliberately.
+
 The Python backend serves the built React UI **and** `/api/v1` on one origin:
 **http://127.0.0.1:8000**. Port 5173 is only needed when developing the frontend.
 

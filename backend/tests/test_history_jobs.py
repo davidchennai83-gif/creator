@@ -5,10 +5,10 @@ from app.video_creator import jobs
 
 def test_timeout_preserves_stage_and_releases_worker(monkeypatch, tmp_path):
     monkeypatch.setattr(jobs, 'root', lambda: tmp_path)
-    def fail(day, progress):
+    def fail(kind, day, progress):
         progress('Writing Tamil summaries with Ollama')
         raise httpx.ReadTimeout('test timeout')
-    monkeypatch.setattr(jobs, 'create_script', fail)
+    monkeypatch.setattr(jobs, 'create_video_script', fail)
     job = {'id': 'timeout-test', 'owner': 'test', 'date': date.today().isoformat(), 'status': 'writing', 'message': ''}
     assert jobs.gate.acquire(blocking=False)
     jobs.run(job, 'script')

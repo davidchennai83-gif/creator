@@ -1,0 +1,32 @@
+# Overlay for a real domain with AUTOMATIC HTTPS — supersedes the manual-certificate
+# docker/docker-compose.prod.yml flow (no cert files, no certbot).
+#
+#   1. In the root .env set:   DOMAIN=example.com    HTTP_BIND=0.0.0.0
+#   2. Point the domain's A/AAAA record at this host and open ports 80 + 443.
+#   3. Create your owner account first: this overlay flips the hardening switches
+#      (ALLOW_REGISTRATION=false, COOKIE_SECURE=true, REQUIRE_REDIS=true), so
+#      register while running the plain stack, then bring it up with this overlay.
+#
+#   docker compose -f docker-compose.yml -f docker/docker-compose.https.yml up -d --build
+#
+# Certificates are obtained/renewed by Caddy automatically; state lives in the
+# caddy_data volume.
+services:
+  caddy:
+    environment:
+      SITE_ADDRESS: https://${DOMAIN:?Set DOMAIN in .env}
+    ports:
+      - "${HTTP_BIND:-127.0.0.1}:443:443"
+      - "${HTTP_BIND:-127.0.0.1}:443:443/udp"
+    restart: unless-stopped
+  backend:
+    environment:
+      ENVIRONMENT: production
+      COOKIE_SECURE: "true"
+      REQUIRE_REDIS: "true"
+      ALLOW_REGISTRATION: "false"
+    restart: unless-stopped
+  postgres:
+    restart: unless-stopped
+  redis:
+    restart: unless-stopped

@@ -3,3 +3,6 @@ moviepy==2.2.1
 edge-tts>=7.2,<8
 pillow==11.3.0
 imageio-ffmpeg==0.6.0
+# cv2 powers the Ken Burns/parallax scene animation (render.py, motion.py); headless build.
+opencv-python-headless>=4.9,<5
+numpy>=1.26,<3

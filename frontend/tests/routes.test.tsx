@@ -24,7 +24,7 @@ it('sidebar lists only the pages that still exist', () => {
   render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>);
   const nav = within(screen.getByRole('navigation', {hidden: true}));
   const labels = nav.getAllByRole('link', {hidden: true}).map(link => link.textContent);
-  expect(labels).toEqual(['Dashboard', 'Video Creator', 'Task Scheduler', 'Social Media', 'Activity Logs', 'Settings']);
+  expect(labels).toEqual(['Dashboard', 'Video Creator', 'Recorder', 'Task Scheduler', 'Automation', 'Social Media', 'Store', 'Store Admin', 'Meesho Finds', 'Voice Agent', 'Autonomous Ops', 'Activity Logs', 'Settings']);
 });
 
 it('dashboard no longer links to removed content pages', () => {

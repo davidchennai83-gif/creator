@@ -13,7 +13,8 @@ export default function Social() {
         <p className="text-sm">{instruction}</p>
       </article>)}
     </div>
-    <p className="text-sm">Website login does not connect publishing permissions to this app. Automatic posting is not configured.</p>
+    <p className="text-sm">YouTube posts automatically. Facebook and Instagram post automatically once you connect them once on the PC: run the desktop shortcut <b>“Connect-Facebook-Instagram”</b> (or ask the agent to run it) and log in to each site in the Chrome window that opens. No password is stored — only the browser session.</p>
+    <p className="text-sm text-slate-500">Website login here is only for your browser; the automatic uploader uses a saved session on the PC.</p>
     <Link to="/video-creator" className="text-teal-700 underline">Choose a video to download and share</Link>
   </section>;
 }

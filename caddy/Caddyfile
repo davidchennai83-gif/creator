@@ -1,0 +1,27 @@
+# Creator Platform — Caddy edge proxy (caddy/Caddyfile).
+#
+# Caddy is the ONLY published entry point of the stack; nginx stays internal and
+# keeps serving the SPA, the API and the Socket.IO upgrade paths.
+#
+# SITE_ADDRESS (root .env, passed through docker-compose.yml) selects the mode:
+#
+#   :80                    plain HTTP for any Host (default) — local, LAN and
+#                          tunnel setups, where TLS ends at the tunnel/provider.
+#   https://example.com    auto-HTTPS: Caddy obtains and renews the Let's
+#                          Encrypt/ZeroSSL certificates itself and redirects
+#                          plain HTTP to HTTPS. Needs the https overlay
+#                          (docker/docker-compose.https.yml, publishes 443) and
+#                          DNS pointing at this host.
+#
+# Caddy adds X-Forwarded-For/Proto/Host; nginx trusts them (set_real_ip_from in
+# nginx/nginx.conf) so the backend rate limiter still sees the real client IP.
+
+{$SITE_ADDRESS} {
+	# HSTS is ignored by browsers over plain HTTP, so this is safe in both modes.
+	header Strict-Transport-Security "max-age=31536000"
+
+	# WebSocket upgrades, SSE streaming and long-lived Socket.IO connections need
+	# no extra tuning: Caddy forwards Upgrade frames, streams responses and has
+	# no response timeout by default — nginx keeps its per-route read timeouts.
+	reverse_proxy {$NGINX_UPSTREAM:nginx:80}
+}

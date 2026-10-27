@@ -8,8 +8,16 @@ import Dashboard from './pages/Dashboard';
 import ActivityLogs from './pages/ActivityLogs';
 import Settings from './pages/Settings';
 import VideoCreator from './pages/VideoCreator';
+import Store from './pages/Store';
+import StoreAdmin from './pages/StoreAdmin';
+import Finds from './pages/Finds';
+import FindsAdmin from './pages/FindsAdmin';
+import VoiceAgent from './pages/VoiceAgent';
+import Ops from './pages/Ops';
 import Social from './pages/Social';
 import Scheduler from './pages/Scheduler';
+import Recorder from './pages/Recorder';
+import Automation from './pages/Automation';
 import { PlannedPage, NotFoundPage } from './pages';
 import { useAuthStore } from './stores/authStore';
 import { bootstrapSession } from './services/apiClient';
@@ -24,11 +32,20 @@ export default function App() {
       <Route path="register" element={user ? <Navigate to="/" replace /> : <Register />} />
       <Route path="forgot-password" element={<PlannedPage title="Password recovery" />} />
     </Route>
+    {/* Public affiliate landing page: no sign-in, separate Tamil Budget Finds brand. */}
+    <Route path="finds" element={<Finds />} />
     <Route element={user ? <MainLayout /> : <Navigate to="/login" replace />}>
       <Route index element={<Dashboard />} />
       <Route path="social" element={<Social />} />
+      <Route path="store" element={<Store />} />
+      <Route path="store/admin" element={<StoreAdmin />} />
+      <Route path="finds-admin" element={<FindsAdmin />} />
+      <Route path="voice" element={<VoiceAgent />} />
+      <Route path="ops" element={<Ops />} />
       <Route path="scheduler" element={<Scheduler />} />
       <Route path="video-creator" element={<VideoCreator />} />
+      <Route path="recorder" element={<Recorder />} />
+      <Route path="automation" element={<Automation />} />
       <Route path="activity" element={<ActivityLogs />} />
       <Route path="settings" element={<Settings />} />
       {['publish', 'customers'].map(path =>

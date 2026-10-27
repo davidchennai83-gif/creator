@@ -10,7 +10,14 @@ x-backend: &backend
     CELERY_RESULT_BACKEND: redis://redis:6379/1
     SERVER_HOST: 0.0.0.0
     STORAGE_PATH: /app/backend/storage
+    # Caddy is the only published entry point (see the caddy service), so honour
+    # its X-Forwarded-For.
+    TRUST_PROXY: "true"
     ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost,http://127.0.0.1}
+    # Honour the root .env auth profile inside the container too.
+    ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
+    COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    RECORDER_AGENT_TOKEN: ${RECORDER_AGENT_TOKEN:-}
     OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
   volumes:
     - media:/app/backend/storage
@@ -56,13 +63,26 @@ services:
     build: ./frontend
   nginx:
     image: nginx:1.28-alpine
-    ports:
-      - "${HTTP_BIND:-127.0.0.1}:80:80"
+    # Internal only — Caddy is the published edge (it proxies to nginx:80).
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       backend: {condition: service_healthy}
       frontend: {condition: service_started}
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      # :80 = plain HTTP for any Host; https://<domain> = auto-HTTPS (https overlay).
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      NGINX_UPSTREAM: nginx:80
+    ports:
+      - "${HTTP_BIND:-127.0.0.1}:80:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      nginx: {condition: service_started}
   worker:
     <<: *backend
     profiles: [jobs]
@@ -81,3 +101,5 @@ volumes:
   postgres_data:
   redis_data:
   media:
+  caddy_data:
+  caddy_config:

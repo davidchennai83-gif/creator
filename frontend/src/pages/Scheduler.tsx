@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { CalendarDays, Clock3, Plus, ArrowLeft, Check, Pause, Play, Pencil, Trash2, Youtube, Facebook, Instagram, Sparkles, FolderOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api, { Envelope, errorMessage } from '../services/apiClient';
+import { TAMIL_VOICES } from '../constants/voices';
 
 type Frequency = 'daily' | 'weekly' | 'monthly' | 'custom';
 interface FormData {
@@ -13,7 +14,7 @@ interface Task extends FormData {
   id: string; enabled: boolean; next_run: string | null; message: string; last_run?: string;
   last_job_status?: string; last_job_message?: string; publishing_status: string;
 }
-interface Project { id: string; name: string; description: string }
+interface Project { id: string; name: string; description: string; kind?: 'video' | 'automation'; files?: string[] }
 const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const channels = [{id:'youtube', name:'YouTube', Icon:Youtube, color:'text-red-600'}, {id:'facebook', name:'Facebook', Icon:Facebook, color:'text-blue-600'}, {id:'instagram', name:'Instagram', Icon:Instagram, color:'text-pink-600'}];
 const inputClass = 'w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500';
@@ -41,13 +42,18 @@ export default function Scheduler() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [filter, setFilter] = useState('all');
-  const load = async () => { const result = await api.get<Envelope<Task[]>>('/scheduler'); setTasks(result.data.data); };
+  const load = async (isAlive?: () => boolean) => { const result = await api.get<Envelope<Task[]>>('/scheduler'); if (!isAlive || isAlive()) setTasks(result.data.data); };
+  const loadProjects = async (isAlive?: () => boolean) => { const result = await api.get<Envelope<Project[]>>('/scheduler/projects'); if (!isAlive || isAlive()) setProjects(result.data.data); };
   useEffect(()=>{
     let alive = true;
-    Promise.all([api.get<Envelope<Task[]>>('/scheduler'), api.get<Envelope<Project[]>>('/scheduler/projects')])
-      .then(([a,b])=>{if(alive){setTasks(a.data.data);setProjects(b.data.data);}})
-      .catch(e=>{if(alive)setError(errorMessage(e));}).finally(()=>{if(alive)setLoading(false);});
-    const timer = window.setInterval(()=>{void load().catch(e=>{if(alive)setError(errorMessage(e));});},20000);
+    const refresh = async () => {
+      const [tasksResult, projectsResult] = await Promise.allSettled([load(()=>alive), loadProjects(()=>alive)]);
+      if (!alive) return;
+      const failure = tasksResult.status === 'rejected' ? tasksResult.reason : projectsResult.status === 'rejected' ? projectsResult.reason : null;
+      if (failure) setError(errorMessage(failure));
+    };
+    void refresh().finally(()=>{if(alive)setLoading(false);});
+    const timer = window.setInterval(()=>void refresh(),20000);
     return ()=>{alive=false;window.clearInterval(timer);};
   },[]);
   function update<K extends keyof FormData>(key: K, value: FormData[K]) { setForm(prev=>({...prev,[key]:value})); }
@@ -77,6 +83,9 @@ export default function Scheduler() {
   const enabled = tasks.filter(t=>t.enabled && t.next_run);
   const visible = tasks.filter(t=>filter==='all' || (filter==='active' ? t.enabled && t.next_run : !t.enabled));
   const next = enabled.map(t=>t.next_run!).sort()[0];
+  const currentProject = projects.find(p=>p.id===form.project);
+  const isAutomation = currentProject?.kind === 'automation';
+  const groups = { video: projects.filter(p=>p.kind!=='automation'), automation: projects.filter(p=>p.kind==='automation') };
   return <section className="max-w-6xl mx-auto space-y-6 pb-12">
     <header className="rounded-2xl bg-slate-900 p-6 sm:p-8 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-5">
       <div><p className="text-teal-300 text-xs font-bold tracking-widest uppercase mb-2">Creator workspace / Automation</p><h1 className="text-3xl font-bold">Task Scheduler</h1><p className="text-slate-300 mt-2">Your projects. Your schedule. A consistent content routine.</p></div>
@@ -90,9 +99,13 @@ export default function Scheduler() {
         <section className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5">
           <h2 className="font-bold text-xl flex items-center gap-3"><span className="rounded-lg bg-teal-50 text-teal-700 px-3 py-1">01</span> Project details</h2>
           <label className="block text-sm font-medium">Task name<input autoFocus required maxLength={100} value={form.name} onChange={e=>update('name',e.target.value)} placeholder="Morning Tamil history" className={`${inputClass} mt-2`}/></label>
-          <label className="block text-sm font-medium">Project<select required value={form.project} onChange={e=>update('project',e.target.value)} className={`${inputClass} mt-2`}>{projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-          <p className="text-sm text-slate-500">{projects.find(p=>p.id===form.project)?.description}</p>
-          <label className="block text-sm font-medium">Tamil voice<select value={form.voice} onChange={e=>update('voice',e.target.value)} className={`${inputClass} mt-2`}><option value="ta-IN-PallaviNeural">Pallavi — female</option><option value="ta-IN-ValluvarNeural">Valluvar — male</option></select></label>
+          <label className="block text-sm font-medium">Project<select required value={form.project} onChange={e=>update('project',e.target.value)} className={`${inputClass} mt-2`}>
+            {groups.video.length>0 && <optgroup label="Content videos">{groups.video.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</optgroup>}
+            {groups.automation.length>0 && <optgroup label="Playwright automation">{groups.automation.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</optgroup>}
+          </select></label>
+          <p className="text-sm text-slate-500">{currentProject?.description}</p>
+          {isAutomation && <p className="rounded-xl bg-indigo-50 text-indigo-900 p-3 text-sm">Runs the project's <b>main.py</b> with Playwright (Python) on this PC. Video voice and share destinations below do not apply.</p>}
+          {!isAutomation && <><label className="block text-sm font-medium">Tamil voice<select value={form.voice} onChange={e=>update('voice',e.target.value)} className={`${inputClass} mt-2`}>{TAMIL_VOICES.map(v=><option key={v.id} value={v.id}>{v.label}</option>)}</select></label></>}
         </section>
         <section className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5">
           <h2 className="font-bold text-xl flex items-center gap-3"><span className="rounded-lg bg-teal-50 text-teal-700 px-3 py-1">02</span> Schedule & date range</h2>
@@ -103,20 +116,20 @@ export default function Scheduler() {
           <div className="grid sm:grid-cols-2 gap-4"><label className="text-sm font-medium">Generation time<input type="time" required value={form.run_time} onChange={e=>update('run_time',e.target.value)} className={`${inputClass} mt-2`}/></label><div className="rounded-xl bg-slate-50 p-4 text-sm"><Clock3 size={18} className="text-teal-700 mb-1"/>Asia/Kolkata (IST)<p className="text-slate-500">UTC +05:30 · All task times</p></div></div>
           <div className="grid sm:grid-cols-2 gap-4"><label className="text-sm font-medium">Start date<input type="date" required value={form.start_date} onChange={e=>update('start_date',e.target.value)} className={`${inputClass} mt-2`}/></label><label className="text-sm font-medium">End date<input type="date" required min={form.start_date} value={form.end_date} onChange={e=>update('end_date',e.target.value)} className={`${inputClass} mt-2`}/></label></div>
         </section>
-        <section className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5">
+        {!isAutomation && <section className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5">
           <h2 className="font-bold text-xl flex items-center gap-3"><span className="rounded-lg bg-teal-50 text-teal-700 px-3 py-1">03</span> Share destinations</h2>
           <div className="grid sm:grid-cols-3 gap-3">{channels.map(({id,name,Icon,color})=><label key={id} className={`rounded-xl border p-4 cursor-pointer flex items-center gap-3 ${form.platforms.includes(id)?'border-teal-500 bg-teal-50':'border-slate-200'}`}><input type="checkbox" checked={form.platforms.includes(id)} onChange={()=>update('platforms',form.platforms.includes(id)?form.platforms.filter(p=>p!==id):[...form.platforms,id])}/><Icon className={color} size={22}/><span className="font-medium text-sm">{name}</span></label>)}</div>
           <p className="rounded-xl bg-amber-50 text-amber-900 p-3 text-sm">Selections are saved as publishing preferences. Automatic posting needs official account connections, which are not configured yet. Scheduled videos are generated and saved to your gallery.</p>
-        </section>
+        </section>}
       </div>
       <aside className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5 lg:sticky lg:top-6">
         <div className="flex items-center gap-2 font-bold text-lg"><Sparkles className="text-teal-600" size={20}/> Task preview</div>
         <h3 className="text-xl font-bold break-words">{form.name || 'Your new task'}</h3>
         <p className="text-sm text-slate-600">{projects.find(p=>p.id===form.project)?.name}</p>
         <div className="bg-slate-50 rounded-xl p-4 space-y-2"><p className="font-bold text-2xl">{form.run_time || '--:--'} <span className="text-xs font-normal">IST</span></p><p className="text-sm">{repeatText(form)}</p><p className="text-xs text-slate-500">{form.start_date} → {form.end_date}</p></div>
-        <p className="text-sm flex gap-2"><Check size={18} className="text-teal-600 shrink-0"/>Generate script, narration, photos and MP4 automatically.</p>
-        <p className="text-sm text-slate-500">{form.platforms.length ? `${form.platforms.length} destinations selected · connection required` : 'Save to gallery only'}</p>
-        <p className="text-xs text-slate-500">PC/backend must stay running. One video at a time; busy tasks wait. Missed prior days are skipped after restart.</p>
+        <p className="text-sm flex gap-2"><Check size={18} className="text-teal-600 shrink-0"/>{isAutomation ? 'Runs main.py with Playwright and records the result.' : 'Generate script, narration, photos and MP4 automatically.'}</p>
+        <p className="text-sm text-slate-500">{isAutomation ? 'Output log is saved under the automation runs.' : (form.platforms.length ? `${form.platforms.length} destinations selected · connection required` : 'Save to gallery only')}</p>
+        <p className="text-xs text-slate-500">{isAutomation ? 'PC/backend must stay running. One automation run at a time; busy tasks wait.' : 'PC/backend must stay running. One video at a time; busy tasks wait. Missed prior days are skipped after restart.'}</p>
         <button disabled={busy} type="submit" className="w-full bg-teal-700 text-white font-bold rounded-xl py-3 disabled:opacity-50">{busy?'Saving…':editing?'Save changes':'Create task'}</button>
         <button disabled={busy} type="button" onClick={()=>setShowForm(false)} className="w-full text-slate-500">Cancel</button>
       </aside>

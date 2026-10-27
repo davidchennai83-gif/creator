@@ -7,6 +7,13 @@ import {
   Share2,
   FileText,
   Settings,
+  CircleDot,
+  Bot,
+  ShoppingCart,
+  ShoppingBag,
+  Store as StoreIcon,
+  Radio,
+  Sparkles,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore, useUIStore } from '../stores';
@@ -14,8 +21,15 @@ import { useAuthStore, useUIStore } from '../stores';
 const menuItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/video-creator', label: 'Video Creator', icon: Film },
+  { path: '/recorder', label: 'Recorder', icon: CircleDot },
   { path: '/scheduler', label: 'Task Scheduler', icon: Clock },
+  { path: '/automation', label: 'Automation', icon: Bot },
   { path: '/social', label: 'Social Media', icon: Share2 },
+  { path: '/store', label: 'Store', icon: ShoppingCart },
+  { path: '/store/admin', label: 'Store Admin', icon: StoreIcon },
+  { path: '/finds-admin', label: 'Meesho Finds', icon: ShoppingBag },
+  { path: '/voice', label: 'Voice Agent', icon: Radio },
+  { path: '/ops', label: 'Autonomous Ops', icon: Sparkles },
   { path: '/activity', label: 'Activity Logs', icon: FileText },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
@@ -35,7 +49,7 @@ const Sidebar: React.FC = () => {
             key={item.path}
             to={item.path}
             onClick={closeSidebar}
-            end={item.path === '/'}
+            end={item.path === '/' || item.path === '/store'}
             className={({ isActive }) =>
               clsx(
                 'flex items-center gap-3 px-4 py-3 text-sm transition-colors',

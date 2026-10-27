@@ -69,6 +69,27 @@ def test_viewer_cannot_write(client, account, headers):
     assert client.post('/api/v1/video-creator/jobs',headers=headers,json={}).status_code==403
     assert client.get('/api/v1/scheduler',headers=headers).status_code==200
 
+def test_registration_grants_no_code_execution(client, account):
+    # The first account boots the machine owner as ADMIN.
+    assert account['user']['role'] == 'ADMIN'
+    other = client.post('/api/v1/auth/register', json={"email": "guest@example.com", "username": "guest", "password": "A secure password 123"})
+    assert other.status_code == 201, other.text
+    guest = other.json()['data']
+    assert guest['user']['role'] == 'VIEWER'
+    guest_headers = {"Authorization": f"Bearer {guest['access_token']}"}
+    # A VIEWER can browse, but cannot edit, render, or reach code-execution surfaces.
+    assert client.get('/api/v1/dashboard', headers=guest_headers).status_code == 200
+    assert client.post('/api/v1/automation/projects', headers=guest_headers, json={"name": "guest-probe"}).status_code == 403
+    assert client.get('/api/v1/automation/projects', headers=guest_headers).status_code == 403
+    assert client.get('/api/v1/automation/runs', headers=guest_headers).status_code == 403
+    assert client.get('/api/v1/recorder/list', headers=guest_headers).status_code == 403
+    assert client.post('/api/v1/recorder/run', headers=guest_headers, json={"name": "x.py", "content": "print(1)"}).status_code == 403
+    # The bootstrap owner keeps full access to both surfaces.
+    admin_headers = {"Authorization": f"Bearer {account['access_token']}"}
+    assert client.post('/api/v1/automation/projects', headers=admin_headers, json={"name": "owner-probe"}).status_code == 201
+    assert client.get('/api/v1/automation/projects', headers=admin_headers).status_code == 200
+    assert client.get('/api/v1/recorder/list', headers=admin_headers).status_code == 200
+
 @pytest.mark.parametrize('method,path', [('post','social/publish'),('post','payments/checkout'),('get','videos/000/status')])
 def test_incomplete_features_never_claim_success(client,headers,method,path):
     response=getattr(client,method)('/api/v1/'+path,headers=headers)

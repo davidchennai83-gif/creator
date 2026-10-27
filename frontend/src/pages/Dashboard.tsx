@@ -3,7 +3,7 @@ import { Film, Clock, Share2 } from 'lucide-react';
 import { Card } from '../components/common/Card';
 
 const shortcuts = [
-  { to: '/video-creator', title: 'Video Creator', text: 'Generate Tamil History and Indian Law videos, then download the MP4.', icon: Film },
+  { to: '/video-creator', title: 'Video Creator', text: 'Generate Tamil History, Indian Law, How to Make Money, Tamil News, Thirukkural, Spoken English, Amazing Facts, Health Tips, Life Lessons and Kids Learning, then download the MP4.', icon: Film },
   { to: '/scheduler', title: 'Task Scheduler', text: 'Schedule daily, weekly or monthly video generation.', icon: Clock },
   { to: '/social', title: 'Social Media', text: 'Open YouTube, Facebook and Instagram to upload your videos.', icon: Share2 },
 ];
@@ -18,6 +18,6 @@ export default function Dashboard() {
         <p className="text-sm text-gray-500 mt-1">{text}</p>
       </Link>)}
     </div>
-    <Card title="Publishing status"><p>Videos are generated and saved to your gallery. Automatic posting to social platforms is not configured, so upload the downloaded MP4 from each platform's website.</p></Card>
+    <Card title="Publishing status"><p>Videos are generated daily and posted automatically to <b>YouTube</b>. <b>Facebook</b> and <b>Instagram</b> post automatically too, but need a one-time connect on the PC (desktop shortcut <b>“Connect-Facebook-Instagram”</b>). Until then, you can always download the MP4 and upload it from each platform's website.</p></Card>
   </div>;
 }

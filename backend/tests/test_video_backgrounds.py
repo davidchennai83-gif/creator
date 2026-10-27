@@ -19,7 +19,7 @@ def test_background_matches_topic_and_is_valid_local_svg(title, kind, topic):
     result = illustration({'title': title, 'text': ''}, kind, 0)
     assert result['topic'] == topic
     svg = ElementTree.fromstring(base64.b64decode(result['image'].split(',', 1)[1]))
-    assert svg.attrib['viewBox'] == '0 0 1280 720'
+    assert svg.attrib['viewBox'] == '0 0 1080 1920'
     assert not list(svg.iter('{http://www.w3.org/2000/svg}image'))
 
 

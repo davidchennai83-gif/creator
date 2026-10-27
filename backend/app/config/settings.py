@@ -14,7 +14,10 @@ class Environment(str, Enum):
     PRODUCTION = "production"
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=(PROJECT_DIR / ".env", BACKEND_DIR / ".env", BACKEND_DIR / ".env.public"), env_file_encoding="utf-8", extra="ignore")
+    # Config chain: root .env (secrets/compose) then backend/.env (local overrides;
+    # later file wins). backend/.env.public used to sit here and silently force
+    # COOKIE_SECURE + a stale ngrok origin — it is no longer loaded.
+    model_config = SettingsConfigDict(env_file=(PROJECT_DIR / ".env", BACKEND_DIR / ".env"), env_file_encoding="utf-8", extra="ignore")
 
     ENVIRONMENT: Environment = Environment.DEVELOPMENT
     DEBUG: bool = False
@@ -25,6 +28,8 @@ class Settings(BaseSettings):
     COOKIE_SECURE: bool = False
     REQUIRE_REDIS: bool = False
     ALLOW_REGISTRATION: bool = True
+    # Disable the scheduler/voice/ops loops in tests or single-request tooling.
+    BACKGROUND_WORKERS: bool = True
 
     DATABASE_URL: str = f"sqlite+aiosqlite:///{(BACKEND_DIR / 'creator_platform.db').as_posix()}"
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -39,15 +44,53 @@ class Settings(BaseSettings):
 
     STORAGE_PROVIDER: str = "local"
     STORAGE_PATH: str = str(BACKEND_DIR / "storage")
+    # Public address used in Meesho video descriptions and the click-tracking
+    # redirect (/go/<product_id>). Override in .env when the tunnel changes.
+    FINDS_PUBLIC_BASE_URL: str = "https://desktop-57mkr8o.tail979641.ts.net"
+    # Optional AI copy for the daily Meesho video. The deterministic template is
+    # still used whenever the local model is unavailable or returns unsafe copy.
+    # Set MEESHO_AI_COPY=false in .env to force the old template.
+    MEESHO_AI_COPY: bool = True
+    MEESHO_AI_MODEL: str = "gemma3:4b"
 
     AI_PROVIDER: str = "ollama"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "gemma3:4b"
     HISTORY_MODEL: str = "gemma3:4b"
+    # Rewrites ten RSS headlines into spoken Tamil bulletin lines. Off by
+    # default: the extractive summary keeps every fact exactly as published.
+    # A 4B model can invert a fact ("in custody" -> "on bail"), which is not
+    # acceptable on a news channel; enable only after reviewing its output.
+    NEWS_AI_REWRITE: bool = False
+    NEWS_MODEL: str = "gemma3:4b"
     HISTORY_FONT: str = "C:/Windows/Fonts/Nirmala.ttf"
     PEXELS_API_KEY: SecretStr = SecretStr("")
 
+    # Video rendering: portrait short-video output and optional AI video provider.
+    VIDEO_OUTPUT_WIDTH: int = 1080
+    VIDEO_OUTPUT_HEIGHT: int = 1920
+    VIDEO_FPS: int = 24
+    # Animated end-card (Like / Share / Subscribe) appended to every narrated
+    # video. CHANNEL_NAME is optional — leave it empty for a generic tagline.
+    CHANNEL_NAME: str = ""
+    OUTRO_SECONDS: float = 3.4
+    # 'local' renders animated-image motion (Ken Burns / parallax / particles).
+    # 'http' connects a generic image-to-video/text-to-video API (see video_gen.py).
+    VIDEO_PROVIDER: str = "local"
+    VIDEO_PROVIDER_URL: str = ""
+    VIDEO_PROVIDER_KEY: SecretStr = SecretStr("")
+    VIDEO_PROVIDER_MODEL: str = ""
+    VIDEO_PROVIDER_TIMEOUT: int = 900
+    SUBTITLE_FONT: str = "Nirmala UI"
+    # Scene videos already carry the full sentence on screen. Burning the same
+    # narration again as ASS subtitles duplicates the words and can overlap them.
+    # Keep SRT/JSON captions for uploads, but leave this off for a clean picture.
+    BURN_SUBTITLES: bool = False
+
     ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    # Honour X-Forwarded-For for rate-limit keys only when this process is reachable
+    # through a reverse proxy (docker compose sets true; direct exposure must stay false).
+    TRUST_PROXY: bool = False
     MAX_FILE_SIZE: int = 20 * 1024 * 1024
     UPLOAD_MAX_FILES: int = 20
 
@@ -70,6 +113,26 @@ class Settings(BaseSettings):
     AFFILIATE_QUEUE_NAME: str = "affiliate_queue"
     COMMERCE_QUEUE_NAME: str = "commerce_queue"
     AI_QUEUE_NAME: str = "ai_queue"
+
+    # ── Recorder (local Windows agent: desktop + already-open-Chrome capture) ──
+    # Recordings are plain .py scripts under RECORDINGS_PATH/<web|desktop>/.
+    RECORDINGS_PATH: str = str(BACKEND_DIR / "storage" / "recorder")
+    # Playwright automation projects live under AUTOMATION_PATH/projects/<project>/.
+    AUTOMATION_PATH: str = str(BACKEND_DIR / "storage" / "automation")
+    # Hard limit for a single automation run. The watchdog kills the whole process
+    # tree on expiry so a hung script can never hold the automation gate forever.
+    AUTOMATION_RUN_TIMEOUT: int = Field(default=3600, ge=30, le=86400)
+    # Shared secret the local agent must present in `recorder_register` before it
+    # is allowed to receive commands. Leave empty to accept any agent (LAN/dev only).
+    RECORDER_AGENT_TOKEN: SecretStr = SecretStr("")
+    # Chrome DevTools port used to attach to the browser the user already has open.
+    RECORDER_CHROME_DEBUG_PORT: int = Field(default=9222, ge=1024, le=65535)
+    # Seconds to wait for Chrome's debugging endpoint to come up after launching it.
+    RECORDER_CHROME_LAUNCH_TIMEOUT: int = Field(default=25, ge=5, le=120)
+    # Port is open, but the browser was NOT started with --remote-debugging-port
+    # (e.g. it was already running on the default profile). Set false to fail
+    # loudly instead of closing and relaunching the user's Chrome.
+    RECORDER_RELAUNCH_CHROME: bool = True
 
     SENTRY_DSN: Optional[str] = None
     WORKSPACE_ID: Optional[str] = None

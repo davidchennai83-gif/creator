@@ -1,4 +1,3 @@
-from datetime import datetime
 from app.utils.time import utcnow
 from uuid import UUID
 from fastapi import Depends, HTTPException, Request
@@ -34,6 +33,7 @@ def require_roles(*roles: str):
 
 
 editor = require_roles("SUPER_ADMIN", "ADMIN", "EDITOR")
+admin = require_roles("SUPER_ADMIN", "ADMIN")
 
 
 def unavailable():
