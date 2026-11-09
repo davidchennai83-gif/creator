@@ -29,3 +29,10 @@ local.properties
 Thumbs.db
 celerybeat-schedule*
 nginx/certs/
+
+# Local-only artifacts: DB snapshots, screen recordings, build archives and
+# sample renders stay on this PC instead of bloating the repository.
+*.db.bak*
+*.rar
+samples/
+cartoon sample/

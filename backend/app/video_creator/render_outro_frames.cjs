@@ -40,11 +40,13 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
   .head{font-size:60px;font-weight:800;text-align:center;line-height:1.25;text-shadow:0 6px 22px #000b;
         background:__ACCENT__1f;border:2px solid __ACCENT__66;border-radius:34px;padding:22px 40px}
   .row{display:flex;align-items:center;justify-content:center;gap:30px;margin-top:6px}
-  .btn{display:flex;flex-direction:column;align-items:center;gap:16px;width:250px;padding:34px 18px 28px;border-radius:34px;
+  .btn{display:flex;flex-direction:column;align-items:center;gap:16px;width:262px;padding:34px 16px 28px;border-radius:34px;
        background:#0e1c31e6;border:2px solid __ACCENT__55;box-shadow:0 18px 44px #0008, inset 0 0 60px #ffffff0a}
   .btn .ico{width:96px;height:96px;color:__ACCENT__}
   .btn .ico svg{width:100%;height:100%}
-  .btn .lbl{font-size:34px;font-weight:700;letter-spacing:.02em}
+  /* Tamil labels such as சப்ஸ்கிரைப் are wider than the button, so the label is
+     measured at render time and shrunk until it fits inside the pill. */
+  .btn .lbl{font-size:34px;font-weight:700;letter-spacing:.02em;width:100%;text-align:center;white-space:nowrap}
   .btn.sub{background:linear-gradient(180deg,#ff2f4d,#cf0626);border-color:#ff8ba0;box-shadow:0 22px 54px #ff2f4d55}
   .btn.sub .ico{color:#fff;transform-origin:50% 22%}
   .halo{position:absolute;border-radius:50%;border:3px solid __ACCENT__88}
@@ -76,6 +78,15 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
       document.querySelector('.tag').textContent = tagline;
       document.querySelector('.chan').textContent = channel;
       document.querySelector('.chan').style.display = channel ? 'block' : 'none';
+      // Shrink any label that is wider than its button so long Tamil words stay
+      // inside the rounded pill instead of spilling over the edge.
+      document.querySelectorAll('.btn .lbl').forEach((lbl) => {
+        let size = parseFloat(getComputedStyle(lbl).fontSize);
+        while (size > 18 && lbl.scrollWidth > lbl.clientWidth) {
+          size -= 1;
+          lbl.style.fontSize = `${size}px`;
+        }
+      });
       window.__el = {
         head: document.querySelector('.head'),
         like: document.querySelector('.like'),
@@ -126,7 +137,10 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
         el.tag.style.opacity = String(tag);
         el.tag.style.transform = `translateY(${(14 * (1 - easeOut(tag))).toFixed(2)}px)`;
       }, { t });
-      await page.screenshot({ path: path.join(outDir, `f-${String(k + 1).padStart(6, '0')}.png`) });
+      // JPEG at quality 96: the frames go straight into the H.264 encode a
+      // moment later, and PNG screenshots of 1080x1920 cost twice the time.
+      await page.screenshot({ type: 'jpeg', quality: 96,
+        path: path.join(outDir, `f-${String(k + 1).padStart(6, '0')}.jpg`) });
     }
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

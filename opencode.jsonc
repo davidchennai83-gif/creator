@@ -1,0 +1,34 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // MCP servers for the creator platform.
+  //
+  // There is no MCP server that can *publish* the local MP4s to YouTube,
+  // Facebook or Instagram, so posting stays on the in-repo browser automation
+  // (see backend/storage/automation/projects/* Upload). What an MCP server can
+  // add is read-only reporting: views, likes, comments, channel stats.
+  //
+  // youtube-analytics needs one free YouTube Data API v3 key:
+  //   1. https://console.cloud.google.com/ -> create/select a project
+  //   2. APIs & Services -> Library -> enable "YouTube Data API v3"
+  //   3. Credentials -> Create credentials -> API key
+  //   4. set it for this shell, then restart OpenCode's service:
+  //        setx YOUTUBE_API_KEY "AIza..."
+  //   5. change "disabled": true below to false
+  //
+  // Read-only calls cost very little quota, so this is safe to leave on.
+  "mcp": {
+    "servers": {
+      "youtube-analytics": {
+        "type": "local",
+        // `cmd /c` is needed on Windows because the PowerShell npx shim is
+        // blocked by the execution policy. First launch downloads the package.
+        "command": ["cmd", "/c", "npx", "-y", "@kirbah/mcp-youtube"],
+        "environment": {
+          "YOUTUBE_API_KEY": "{env:YOUTUBE_API_KEY}"
+        },
+        "disabled": true
+      }
+    }
+  }
+}

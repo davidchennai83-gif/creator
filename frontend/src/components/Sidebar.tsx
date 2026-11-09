@@ -14,6 +14,7 @@ import {
   Store as StoreIcon,
   Radio,
   Sparkles,
+  Terminal,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore, useUIStore } from '../stores';
@@ -24,6 +25,7 @@ const menuItems = [
   { path: '/recorder', label: 'Recorder', icon: CircleDot },
   { path: '/scheduler', label: 'Task Scheduler', icon: Clock },
   { path: '/automation', label: 'Automation', icon: Bot },
+  { path: '/opencode', label: 'OpenCode', icon: Terminal },
   { path: '/social', label: 'Social Media', icon: Share2 },
   { path: '/store', label: 'Store', icon: ShoppingCart },
   { path: '/store/admin', label: 'Store Admin', icon: StoreIcon },
@@ -37,6 +39,8 @@ const menuItems = [
 const Sidebar: React.FC = () => {
   const user = useAuthStore(s=>s.user);
   const {sidebarOpen, closeSidebar} = useUIStore();
+  const canUseAgent = !!user && ['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(user.role);
+  const items = menuItems.filter(item => item.path !== '/opencode' || canUseAgent);
   return (
     <aside aria-label="Main navigation" className={clsx('w-64 shrink-0 bg-dark-900 text-white flex-col md:flex', sidebarOpen ? 'flex absolute z-30 h-full' : 'hidden')}>
       <div className="p-4 border-b border-dark-700">
@@ -44,7 +48,7 @@ const Sidebar: React.FC = () => {
         <button className="md:hidden mt-2" onClick={closeSidebar}>Close menu</button>
       </div>
       <nav className="flex-1 overflow-y-auto py-4">
-        {menuItems.map((item) => (
+        {items.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}

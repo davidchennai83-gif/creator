@@ -7,6 +7,7 @@ renderer as the other shows, with an optional product-image card.
 from __future__ import annotations
 
 import logging
+import zlib
 from datetime import date
 
 from app import affiliate, finds
@@ -14,12 +15,45 @@ from app.config.settings import settings
 
 log = logging.getLogger(__name__)
 
+# Rotating honest hooks for the deterministic template, so the channel does not
+# open every day with the same line. {price} is the catalogue price.
+TEMPLATE_HOOKS = (
+    "{price}-ல இதான் best",
+    "{price} budget-ல இதைப் பாருங்க",
+    "{price}-க்கு இந்த product எப்படி?",
+    "இன்றைய {price} Budget Pick",
+    "{price}-ல கிடைக்கும் ஒரு option",
+)
+DISCLOSURE_LINE = "Affiliate link: வாங்கினால் எனக்கு commission கிடைக்கும்"
+DISCLOSURE_SPEECH = "இது ஒரு அஃபிலியேட் லிங்க். நீங்கள் வாங்கினால் எனக்கு சிறிய கமிஷன் கிடைக்கும்."
+
 
 def _inr(value) -> str:
     try:
         return f"₹{float(value or 0):,.0f}"
     except (TypeError, ValueError):
         return "₹0"
+
+
+def _rating(value) -> float:
+    try:
+        return max(0.0, min(5.0, float(value or 0)))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _discount_pct(price, mrp) -> int:
+    try:
+        price, mrp = float(price or 0), float(mrp or 0)
+    except (TypeError, ValueError):
+        return 0
+    return int(round((mrp - price) / mrp * 100)) if mrp > price > 0 else 0
+
+
+def _hook_for(product: dict, day: date, price: str) -> str:
+    """Stable per product+day (a re-render gives the same hook), varied across days."""
+    seed = zlib.crc32(f"{product.get('id')}|{day.isoformat()}".encode("utf-8"))
+    return TEMPLATE_HOOKS[seed % len(TEMPLATE_HOOKS)].format(price=price)
 
 
 def _short(text, limit=74) -> str:
@@ -49,7 +83,8 @@ def create_script(day: date, progress):
     title_en = product.get("title") or title
     price = _inr(product.get("price"))
     mrp = _inr(product.get("mrp"))
-    rating = product.get("rating") or 0
+    rating = _rating(product.get("rating"))
+    pct = _discount_pct(product.get("price"), product.get("mrp"))
     orders = int(product.get("orders_count") or 0)
     category = product.get("category") or "Shopping"
     features = [x for x in (product.get("features") or []) if str(x).strip()]
@@ -71,6 +106,7 @@ def create_script(day: date, progress):
         "price": product.get("price"),
         "mrp": product.get("mrp"),
         "rating": rating,
+        "discount_pct": pct,
         "orders_count": orders,
         "features": features[:4],
         "cautions": cautions[:3],
@@ -79,11 +115,12 @@ def create_script(day: date, progress):
         "demo": bool(product.get("demo")),
     }
 
+    price_line = f"{price}  (MRP {mrp})" + (f" · {pct}% off" if pct >= 10 else "")
     points = [
         {
             **common,
             "title": "இன்றைய Budget Pick",
-            "lines": ["Tamil Budget Finds", f"{price} -ல இதான் best"],
+            "lines": ["Tamil Budget Finds", _hook_for(product, day, price)],
             "speech": f"இன்றைய பட்ஜெட் தேர்வு. இந்த பொருளின் விலை {price}.",
             "topic": "wallet",
             "photo_query": "online shopping sale bags",
@@ -93,9 +130,9 @@ def create_script(day: date, progress):
             **common,
             "title": _short(title, 64),
             "title_en": title_en,
-            "lines": ([f"{price}  (MRP {mrp})", f"{rating:.1f}★ · {orders:,}+ orders"]
+            "lines": ([price_line, f"{rating:.1f}★ · {orders:,}+ orders"]
                       if orders > 0 else
-                      [f"{price}  (MRP {mrp})", f"{rating:.1f}★ rating"]),
+                      [price_line, f"{rating:.1f}★ rating"]),
             "speech": ((f"{title}. விலை {price}. எம்.ஆர்.பி. {mrp}. "
                         f"மதிப்பீடு {rating:.1f} நட்சத்திரம். {orders} ஆர்டர்களுக்கு மேல்.")
                        if orders > 0 else
@@ -141,6 +178,14 @@ def create_script(day: date, progress):
             "text": f"Click the link to buy on {store}. {short_url}",
         },
     ]
+    # Disclosure: a real affiliate link means we earn commission. Say so on screen,
+    # in the voice-over and in the caption text. Skipped for sample products.
+    if getattr(settings, "MEESHO_DISCLOSURE", True) and not product.get("demo"):
+        cta = points[4]
+        cta["disclosure"] = DISCLOSURE_LINE
+        cta["lines"] = [*cta["lines"], DISCLOSURE_LINE]
+        cta["speech"] = f"{cta['speech']} {DISCLOSURE_SPEECH}"
+        cta["text"] = f"{cta['text']} (Affiliate link - I may earn a commission.)"
     if getattr(settings, "MEESHO_AI_COPY", False):
         try:
             from app.video_creator.meesho import ai_copy

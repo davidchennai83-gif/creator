@@ -1,7 +1,8 @@
 """Provider-based AI picture-to-video generation.
 
-This machine has no CUDA GPU, so diffusion / SVD-style video models cannot run
-locally. Instead the app talks to any external provider that implements this
+This machine has an 8 GB RTX 2060, which is not enough for diffusion /
+SVD-style video models (they want 12-24 GB and many minutes per clip). Instead
+the app talks to any external provider that implements this
 tiny REST contract (keep it that generic on purpose):
 
     POST {VIDEO_PROVIDER_URL}/generate

@@ -16,6 +16,26 @@ The Python backend serves the built React UI **and** `/api/v1` on one origin:
 the frontend. After code changes run `npm.cmd run build` inside `frontend`.
 First-time installation uses `setup-local.cmd` (Python, Node and internet required).
 
+## OpenCode chat inside the app
+
+ADMIN and EDITOR accounts get an **OpenCode** button at the bottom-right of every page
+and an **OpenCode** item in the sidebar. Pick a model, type a message, press **Enter**
+(Shift+Enter inserts a newline). Replies stream into the panel and the transcript is
+kept in the browser, so closing and reopening the panel continues the same conversation.
+
+The backend starts the OpenCode Desktop CLI on `127.0.0.1:4096` the first time it is
+needed (roughly 5-10 seconds) and keeps it running for later messages; it only listens
+on loopback. The server log is `backend/storage/logs/opencode-server.log`. Tune it in
+`.env` with `OPENCODE_URL`, `OPENCODE_SERVER_PASSWORD`, `OPENCODE_CLI_PATH`,
+`OPENCODE_DEFAULT_MODEL` and `OPENCODE_AUTOSTART` (see `.env.example`). VIEWER accounts
+cannot reach the agent because it can run code on this PC.
+
+The panel is full-screen on phones (the composer stays above the keyboard) and a
+floating window on desktop. For schedule questions such as "today's videos enna
+time ku generate aagum?", the agent runs `python scripts/today_status.py` once
+instead of exploring the codebase; add `--short` for a one-line answer or
+`--date YYYY-MM-DD` for another day. The rules live in `AGENTS.md`.
+
 Automatic startup is per Windows user, at **logon**, not before login:
 
 ```powershell

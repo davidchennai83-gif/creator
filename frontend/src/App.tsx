@@ -18,6 +18,7 @@ import Social from './pages/Social';
 import Scheduler from './pages/Scheduler';
 import Recorder from './pages/Recorder';
 import Automation from './pages/Automation';
+import OpenCode from './pages/OpenCode';
 import { PlannedPage, NotFoundPage } from './pages';
 import { useAuthStore } from './stores/authStore';
 import { bootstrapSession } from './services/apiClient';
@@ -46,6 +47,11 @@ export default function App() {
       <Route path="video-creator" element={<VideoCreator />} />
       <Route path="recorder" element={<Recorder />} />
       <Route path="automation" element={<Automation />} />
+      <Route path="opencode" element={
+        user && ['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(user.role)
+          ? <OpenCode />
+          : <Navigate to="/" replace />
+      } />
       <Route path="activity" element={<ActivityLogs />} />
       <Route path="settings" element={<Settings />} />
       {['publish', 'customers'].map(path =>

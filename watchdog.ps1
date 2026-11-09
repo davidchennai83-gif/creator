@@ -67,6 +67,33 @@ if (-not $recUp) {
             'https://www.instagram.com/accounts/login/',
             'https://www.facebook.com/login/' -WindowStyle Minimized
         Log 'recorder chrome was down - launched'
+        # A launch that races the logon session starts Chrome without the CDP
+        # port, and then every later launch just opens a tab in that same
+        # process. Verify the port; if it stayed closed, close only the
+        # recorder-profile windows (never the user's own Chrome) and retry.
+        for ($i = 0; $i -lt 25; $i++) {
+            if (Get-NetTCPConnection -LocalPort 9222 -State Listen -ErrorAction SilentlyContinue) { break }
+            Start-Sleep -Seconds 1
+        }
+        if (-not (Get-NetTCPConnection -LocalPort 9222 -State Listen -ErrorAction SilentlyContinue)) {
+            Log 'recorder chrome did not open CDP 9222 - restarting it'
+            Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" -ErrorAction SilentlyContinue |
+                Where-Object { $_.CommandLine -and $_.CommandLine.Contains($profile) } |
+                ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+            Start-Sleep -Seconds 3
+            Start-Process -FilePath $chrome -ArgumentList '--remote-debugging-port=9222',
+                "--user-data-dir=$profile", '--no-first-run', '--no-default-browser-check',
+                '--start-minimized', 'https://studio.youtube.com' -WindowStyle Minimized
+            for ($i = 0; $i -lt 25; $i++) {
+                if (Get-NetTCPConnection -LocalPort 9222 -State Listen -ErrorAction SilentlyContinue) { break }
+                Start-Sleep -Seconds 1
+            }
+            if (Get-NetTCPConnection -LocalPort 9222 -State Listen -ErrorAction SilentlyContinue) {
+                Log 'recorder chrome CDP 9222 is up after restart'
+            } else {
+                Log 'recorder chrome CDP 9222 still closed - uploads will fail until it starts'
+            }
+        }
     }
 }
 
@@ -133,7 +160,7 @@ try {
     $ocMain = Get-CimInstance Win32_Process -Filter "Name='OpenCode.exe'" -ErrorAction SilentlyContinue |
         Where-Object { $_.CommandLine -notmatch '--type=' }
     if (-not $ocMain) {
-        $ocExe = Join-Path $env:LOCALAPPDATA 'Programs\@opencodedesktop\OpenCode.exe'
+        $ocExe = Join-Path $env:LOCALAPPDATA 'Programs\ai.opencode.desktop\OpenCode.exe'
         if (Test-Path $ocExe) {
             Start-Process -FilePath $ocExe
             Start-Sleep -Seconds 3

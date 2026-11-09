@@ -62,14 +62,15 @@ def test_decorate_caption_puts_the_link_above_the_hashtags():
     lines = decorated.splitlines()
     assert len(lines) == 3
     assert lines[0].startswith("Kids Learning")
-    assert "https://youtu.be/O3z2WG08FEQ" in lines[1]
+    # The posted link asks the viewer to subscribe as well as play the video.
+    assert "https://youtu.be/O3z2WG08FEQ?sub_confirmation=1" in lines[1]
     assert lines[2].startswith("#KidsLearning")
 
 
 def test_decorate_caption_without_hashtags_appends_the_link():
     links.record("2026-10-26", "kids", "https://youtu.be/O3z2WG08FEQ")
     decorated, _ = links.decorate_caption("one line only", "2026-10-26", "kids")
-    assert decorated.splitlines()[-1].endswith("https://youtu.be/O3z2WG08FEQ")
+    assert decorated.splitlines()[-1].endswith("https://youtu.be/O3z2WG08FEQ?sub_confirmation=1")
 
 
 def test_decorate_caption_without_a_link_keeps_the_caption_untouched():
@@ -101,3 +102,53 @@ def test_sync_pending_resolves_and_keeps_the_unmatched(monkeypatch):
     assert links.lookup("2026-10-26", "history") == "https://youtu.be/4HgiIMH6DlE"
     assert links.lookup("2026-10-26", "news") == ""
     assert "2026-10-26|news" in links.pending()
+
+
+def test_subscribe_watch_url_keeps_the_video_and_adds_the_prompt():
+    assert (links.subscribe_watch_url("https://youtu.be/O3z2WG08FEQ")
+            == "https://youtu.be/O3z2WG08FEQ?sub_confirmation=1")
+    # Any URL shape is normalised to the short watch link first.
+    assert (links.subscribe_watch_url("https://www.youtube.com/shorts/XrcMgzQzOV0?feature=share")
+            == "https://youtu.be/XrcMgzQzOV0?sub_confirmation=1")
+    assert links.subscribe_watch_url("") == ""
+    assert links.subscribe_url() == "https://www.youtube.com/@velanvelan9788?sub_confirmation=1"
+
+
+def test_channel_page_parser_reads_title_and_decodes_escapes():
+    html = (
+        '...{"videoId":"XrcMgzQzOV0","thumbnail":{},"metadata":'
+        '{"lockupMetadataViewModel":{"title":{"content":"Kutty \\u0026 Family \\"Cartoon\\" - 26 Oct 2026"}'
+        ',"metadata":{}}}}...'
+    )
+    items = links._LOCKUP_RE.findall(html)
+    assert items == [("XrcMgzQzOV0", 'Kutty \\u0026 Family \\"Cartoon\\" - 26 Oct 2026')]
+
+
+def test_shorts_parser_reads_each_item_title():
+    html = (
+        '"entityId":"shorts-shelf-item-cfKLZwpWLUM","accessibilityText":"x, No views - play Short",'
+        + '"x":' + '"y",' * 300 +
+        '"overlayMetadata":{"primaryText":{"content":"Tamil News Today \\u2013 28 Oct 2026"}'
+        '"entityId":"shorts-shelf-item-oS3PSgSkvIg","a":1,'
+        '"overlayMetadata":{"primaryText":{"content":"Kids Learning - 27 Oct 2026"}'
+    )
+    assert links._parse_shorts(html) == [
+        ("cfKLZwpWLUM", "Tamil News Today \u2013 28 Oct 2026"),
+        ("oS3PSgSkvIg", "Kids Learning - 27 Oct 2026"),
+    ]
+
+
+def test_fetch_feed_falls_back_to_the_channel_page(monkeypatch):
+    def dead_rss(timeout=20):
+        raise OSError("HTTP Error 404: Not Found")
+
+    monkeypatch.setattr(links, "_fetch_rss", dead_rss)
+    monkeypatch.setattr(links, "_fetch_channel_page",
+                        lambda timeout=20: [("XrcMgzQzOV0", "Tamil News Today - 28 Oct 2026")])
+    assert links.fetch_feed() == [("XrcMgzQzOV0", "Tamil News Today - 28 Oct 2026")]
+
+
+def test_fetch_feed_prefers_the_rss_feed(monkeypatch):
+    monkeypatch.setattr(links, "_fetch_rss", lambda timeout=20: [("4HgiIMH6DlE", "From RSS")])
+    monkeypatch.setattr(links, "_fetch_channel_page", lambda timeout=20: [("XrcMgzQzOV0", "From page")])
+    assert links.fetch_feed() == [("4HgiIMH6DlE", "From RSS")]

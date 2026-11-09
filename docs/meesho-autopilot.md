@@ -167,6 +167,10 @@ POST /api/v1/finds/admin/agent/tick
 - **"Today's video already exists"** — the 19:00 render already used a product;
   choose a future date to change the pick.
 - **Platform "due but not posted"** — check the uploader run and the platform
-  session (CreatorRecorder for YouTube, CreatorSocial for Instagram/Facebook).
+  session. All four uploaders now work inside the user's own Chrome window
+  (CreatorRecorder profile, CDP 9222): YouTube, Instagram and Facebook each open
+  (or reuse) a tab there, so whatever is signed in in that Chrome is what posts.
+  Only one Playwright client can hold that CDP connection at a time, which is why
+  the YouTube run connects per video and releases before the socials start.
 - **YouTube daily limit** — complete the one-time verification in YouTube Studio
   or wait 24 hours. The Autopilot cannot bypass this.

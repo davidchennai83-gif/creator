@@ -32,7 +32,9 @@ class Request(BaseModel):
 
 @router.get('/capabilities')
 def capabilities(user=Depends(get_current_user)):
+    from .encoder import state as encoder_state
     from .video_gen import provider_state
+    from .wan import state as wan_state
     try:
         r = httpx.get(settings.OLLAMA_BASE_URL.rstrip('/') + '/api/tags', timeout=5)
         r.raise_for_status()
@@ -45,6 +47,8 @@ def capabilities(user=Depends(get_current_user)):
                     'models': models, 'mode': 'Moving narrated Tamil scenes (provider AI clips or local animation)',
                     'internet_required': 'History sources and neural Tamil speech',
                     'motion': motion,
+                    'wan': wan_state(),
+                    'encoder': encoder_state(),
                     'output': f"{settings.VIDEO_OUTPUT_WIDTH}x{settings.VIDEO_OUTPUT_HEIGHT} {settings.VIDEO_FPS}fps"})
 
 

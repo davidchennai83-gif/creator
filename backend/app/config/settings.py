@@ -52,6 +52,11 @@ class Settings(BaseSettings):
     # Set MEESHO_AI_COPY=false in .env to force the old template.
     MEESHO_AI_COPY: bool = True
     MEESHO_AI_MODEL: str = "gemma3:4b"
+    # Seconds to wait for the local model (cold CPU start is ~150s).
+    MEESHO_AI_TIMEOUT: int = 240
+    # Show/say "affiliate link, I may earn a commission" on real-link videos.
+    # Leave on: platforms and Indian ad rules expect the disclosure.
+    MEESHO_DISCLOSURE: bool = True
 
     AI_PROVIDER: str = "ollama"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
@@ -69,7 +74,7 @@ class Settings(BaseSettings):
     # Video rendering: portrait short-video output and optional AI video provider.
     VIDEO_OUTPUT_WIDTH: int = 1080
     VIDEO_OUTPUT_HEIGHT: int = 1920
-    VIDEO_FPS: int = 24
+    VIDEO_FPS: int = 30
     # Animated end-card (Like / Share / Subscribe) appended to every narrated
     # video. CHANNEL_NAME is optional — leave it empty for a generic tagline.
     CHANNEL_NAME: str = ""
@@ -81,7 +86,41 @@ class Settings(BaseSettings):
     VIDEO_PROVIDER_KEY: SecretStr = SecretStr("")
     VIDEO_PROVIDER_MODEL: str = ""
     VIDEO_PROVIDER_TIMEOUT: int = 900
+    # Final-pass H.264 encoder. 'auto' uses NVENC when the GPU really encodes
+    # (probed once per process) and falls back to libx264 otherwise;
+    # 'nvenc' / 'x264' force one path. See video_creator/encoder.py.
+    VIDEO_ENCODER: str = "auto"
+    # NVENC quality target: lower is better and bigger. 23 matches the old
+    # libx264 crf 22 look; 20 is near-transparent, 26 makes uploads smaller.
+    VIDEO_CQ: int = 23
     SUBTITLE_FONT: str = "Nirmala UI"
+    # Optional Wan 2.2 (TI2V-5B) AI video for the opening scene only. Measured
+    # here: a 49 frame / 20 step 480x832 clip takes ~25 min including the cold
+    # model load, so it stays off by default and a render falls back to
+    # motion.py whenever ComfyUI is down, busy or slower than WAN_TIMEOUT.
+    VIDEO_WAN: bool = False
+    WAN_URL: str = "http://127.0.0.1:8188"
+    WAN_INPUT_DIR: str = r"D:\ai\ComfyUI\input"
+    WAN_UNET: str = "Wan2.2-TI2V-5B-Q4_K_M.gguf"
+    WAN_CLIP: str = "umt5-xxl-encoder-Q4_K_M.gguf"
+    WAN_VAE: str = "wan2.2_vae.safetensors"
+    WAN_WIDTH: int = 480
+    WAN_HEIGHT: int = 832
+    WAN_FPS: int = 24
+    WAN_FRAMES: int = 49
+    WAN_STEPS: int = 20
+    # Hard per-video budget: a stuck job falls back to local motion. The cold
+    # model load alone can take ~8 min on this 12 GB box, so 900s was too tight.
+    WAN_TIMEOUT: int = 1800
+    WAN_SCENES: int = 1
+    # Meesho scenes are product photos and cards: AI motion can distort the
+    # product and the render must finish before its 19:20 upload.
+    WAN_SKIP_KINDS: str = "meesho"
+    # Optional allow list: empty = every kind that is not skipped. Keeping the
+    # slow AI opening scene on one video a day (e.g. "history") stops it from
+    # eating the gap between the morning renders and the 11:00 upload.
+    WAN_KINDS: str = ""
+    WAN_PROMPT: str = ""
     # Scene videos already carry the full sentence on screen. Burning the same
     # narration again as ASS subtitles duplicates the words and can overlap them.
     # Keep SRT/JSON captions for uploads, but leave this off for a clean picture.
@@ -133,6 +172,30 @@ class Settings(BaseSettings):
     # (e.g. it was already running on the default profile). Set false to fail
     # loudly instead of closing and relaunching the user's Chrome.
     RECORDER_RELAUNCH_CHROME: bool = True
+
+    # ── OpenCode bridge (in-app chat panel) ──────────────────────────────────
+    # The backend proxies the local OpenCode v2 HTTP API so the web UI can talk
+    # to the agent. When the server is not listening the backend launches the
+    # Desktop CLI itself (it has working credentials, unlike the npm build).
+    OPENCODE_URL: str = "http://127.0.0.1:4096"
+    OPENCODE_SERVER_PASSWORD: SecretStr = SecretStr("creatorbridge123")
+    # Empty = auto-discover the newest %APPDATA%/ai.opencode.desktop/cli/*/opencode-cli.exe
+    OPENCODE_CLI_PATH: str = ""
+    OPENCODE_AUTOSTART: bool = True
+    # Working directory the agent edits. Empty = project root (this repository).
+    OPENCODE_WORKDIR: str = ""
+    # Seconds to wait for a freshly spawned server to answer /api/info.
+    OPENCODE_START_TIMEOUT: int = Field(default=45, ge=5, le=180)
+    # Model preselected in the UI (provider/model). Falls back to the server default.
+    OPENCODE_DEFAULT_MODEL: str = "opencode/deepseek-v4.1-flash-free"
+    # Automatic limit fallback for the chat. When the selected model reports a
+    # rate limit, an exhausted quota or a spent credit balance before it has
+    # produced any output, the same prompt is replayed on this local model so
+    # the conversation keeps going. After OPENCODE_FALLBACK_COOLDOWN seconds the
+    # chat tries the original model again and stays on it once it recovers.
+    # Empty = fallback disabled.
+    OPENCODE_FALLBACK_MODEL: str = "ollama/qwen2.5-coder:7b"
+    OPENCODE_FALLBACK_COOLDOWN: int = Field(default=600, ge=30, le=86400)
 
     SENTRY_DSN: Optional[str] = None
     WORKSPACE_ID: Optional[str] = None

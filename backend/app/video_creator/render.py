@@ -1,4 +1,8 @@
-"""CPU-friendly Tamil scene renderer. No silent audio-only success fallbacks."""
+"""Tamil scene renderer: Chromium frames -> animated scenes -> GPU-encoded MP4.
+
+No silent audio-only success fallbacks: the exported file must carry both a
+video stream and narration, or the render fails loudly.
+"""
 import asyncio
 import json
 import logging
@@ -6,7 +10,6 @@ import shutil
 import subprocess
 import time
 import wave
-from contextlib import ExitStack
 from pathlib import Path
 
 from app.config.settings import settings
@@ -109,12 +112,13 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
     (provider AI clips or local Ken Burns/parallax) -> crossfade timeline ->
     word-level Tamil subtitles -> ambient bed -> one FFmpeg render.
     """
-    import numpy as np
     import imageio_ffmpeg
     import cv2
 
+    from . import encoder
     from . import motion
     from . import video_gen
+    from . import wan
     from .cues import build_phrases, speech_with_cues, write_srt
     from .stock_photos import prepare_backgrounds
 
@@ -134,7 +138,8 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
     # The text is rendered as a separate transparent PNG so the camera move is
     # applied only to the background photo. Without this the Ken Burns zoom also
     # zoomed the words, which is exactly what looked "zoomed in" on Facebook.
-    overlays = [_load_overlay(folder / f'overlay-{index + 1}.png') for index in range(len(points))]
+    overlays = [_prepare_overlay(folder / f'overlay-{index + 1}.png', (width, height))
+                for index in range(len(points))]
 
     # 1) Narration first: exact voice durations and word timings drive everything.
     scenes = []
@@ -160,26 +165,44 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
     scene_count = content_count + 1
     total = starts[-1] + raw[-1]
 
-    # 2) Moving scene visuals: external AI provider clip, else local animation.
+    # 2) Moving scene visuals: Wan 2.2 AI clip (opt-in), else an external AI
+    # provider clip, else local animation. Wan is budgeted to the opening scene
+    # because it needs minutes of GPU time per second of footage.
+    wan_ok = set()
+    wan_done = set()
+    if wan.enabled_for(kind) and wan.available():
+        for index in range(min(settings.WAN_SCENES, content_count)):
+            progress(f'Generating AI video with Wan 2.2 for scene {index + 1}')
+            if wan.generate(folder / f'scene-{index + 1}.png',
+                            wan.prompt_for(points[index], index),
+                            folder / f'wan-{index + 1}.mp4', seed=index + 7, progress=progress):
+                wan_ok.add(index)
+            else:
+                progress(f'Scene {index + 1}: Wan 2.2 unavailable; using local motion')
+
     provider = video_gen.provider_state()
-    use_provider = provider['configured']
-    provider_ok = []
-    if use_provider:
-        progress('Animating scenes with the video provider')
-        for index in range(content_count):
+    provider_ok = set()
+    if provider['configured']:
+        pending = [i for i in range(content_count) if i not in wan_ok]
+        if pending:
+            progress('Animating scenes with the video provider')
+        for index in pending:
             ok = video_gen.generate_scene_clip(folder / f'scene-{index + 1}.png',
                                                video_gen.provider_prompt(points[index], index),
                                                raw[index], folder / f'clip-{index + 1}.mp4')
-            provider_ok.append(ok)
             if not ok:
                 progress(f'Scene {index + 1}: provider failed; using local motion')
                 break
-        use_provider = all(provider_ok)
+            provider_ok.add(index)
     for index in range(content_count):
         progress(f'Building moving scene {index + 1}/{content_count}')
         base = folder / f'scene-{index + 1}.png'
         scene_dir = folder / f'seq-{index}'
-        if use_provider:
+        if index in wan_ok and wan.expand(folder / f'wan-{index + 1}.mp4', scene_dir,
+                                          raw[index], fps, width, height):
+            wan_done.add(index)
+            continue
+        if index in provider_ok:
             _extract_clip_frames(folder / f'clip-{index + 1}.mp4', scene_dir, fps, width, height)
         else:
             motion.render_scene(read_frame(base), scene_dir, raw[index], fps, index, seed=index + 1,
@@ -190,8 +213,7 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
     # 3) Crossfade timeline into one frame sequence whose times match starts[].
     progress('Compositing scenes with smooth transitions')
     frame_count = int(round(total * fps))
-    cross_frames = int(round(cross * fps))
-    scene_paths = [sorted((folder / f'seq-{i}').glob('f-*.png')) for i in range(scene_count)]
+    scene_paths = [sorted((folder / f'seq-{i}').glob('f-*.*')) for i in range(scene_count)]
     scene_frames = [len(p) for p in scene_paths]
     missing = [i + 1 for i, count in enumerate(scene_frames) if count == 0]
     if missing:
@@ -202,7 +224,6 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
         index = max(0, min(int(round(local)), scene_frames[scene_index] - 1))
         return scene_paths[scene_index][index]
 
-    prev_frame = None
     for frame_idx in range(frame_count):
         global_time = frame_idx / fps
         active = [i for i in range(scene_count) if starts[i] <= global_time < starts[i] + raw[i]]
@@ -222,11 +243,10 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
             frame = read_frame(scene_timing(scene, global_time))
             frame = _apply_overlay(frame, overlays[scene] if scene < len(overlays) else None)
         frame = _draw_progress(frame, frame_idx / max(1, frame_count - 1), theme['accent_bgr'])
-        prev_frame = frame
         target = folder / f'frame_{frame_idx:06d}.jpg'
         for attempt in range(5):
             try:
-                if cv2.imwrite(str(target), frame, [cv2.IMWRITE_JPEG_QUALITY, 92]) and target.stat().st_size > 0:
+                if cv2.imwrite(str(target), frame, [cv2.IMWRITE_JPEG_QUALITY, 95]) and target.stat().st_size > 0:
                     break
             except (cv2.error, OSError):
                 pass
@@ -260,23 +280,38 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
     progress('Encoding portrait MP4 with moving backgrounds and clean on-screen text')
     output = folder / 'history.mp4'
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
-    command = [ffmpeg, '-y', '-framerate', str(fps), '-i', 'frame_%06d.jpg']
-    command += ['-i', 'full.wav']
-    filters = []
+    head = [ffmpeg, '-y', '-framerate', str(fps), '-i', 'frame_%06d.jpg', '-i', 'full.wav']
+    # The frames come from JPEG (full-range) but YouTube/Facebook expect
+    # limited-range BT.709 HD. Without this the upload looks washed out and the
+    # player has to guess the colour matrix.
+    filters = ['scale=in_range=full:out_range=tv:out_color_matrix=bt709', 'setsar=1']
     if phrases and settings.BURN_SUBTITLES:
         filters.append('ass=subs.ass:fontsdir=fonts')
-    # Keep a square sample aspect ratio so Facebook does not stretch the frame.
-    filters.append('setsar=1')
-    command += ['-vf', ','.join(filters)]
-    command += ['-af', 'loudnorm=I=-16:TP=-1.5:LRA=11',
-                '-c:v', 'libx264', '-preset', 'medium', '-crf', '22', '-pix_fmt', 'yuv420p',
-                '-c:a', 'aac', '-b:a', '192k', '-ac', '2', '-movflags', '+faststart',
-                '-shortest', 'history.mp4']
-    run_ffmpeg(command, folder, 1800)
+    head += ['-vf', ','.join(filters), '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11']
+    tail = ['-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
+            '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709',
+            '-color_range', 'tv', '-movflags', '+faststart',
+            '-shortest', 'history.mp4']
+    codec, codec_name = encoder.video_args()
+    try:
+        run_ffmpeg(head + codec + tail, folder, 1800)
+    except RuntimeError:
+        # A driver update, a second encode session or a full VRAM pool must not
+        # lose a render that already spent minutes compiling frames.
+        if codec_name != 'nvenc':
+            raise
+        log.warning('NVENC encode failed in %s; retrying with libx264', folder)
+        encoder.disable_nvenc()
+        run_ffmpeg(head + encoder.x264_args() + tail, folder, 1800)
 
     credits = json.loads((folder / 'media-sources.json').read_text(encoding='utf-8'))
     for index, credit in enumerate(credits):
-        credit['motion'] = 'ai-provider-clip' if use_provider else 'local-animated'
+        if index in wan_done:
+            credit['motion'] = 'wan-2.2-ai-clip'
+        elif index in provider_ok:
+            credit['motion'] = 'ai-provider-clip'
+        else:
+            credit['motion'] = 'local-animated'
     (folder / 'media-sources.json').write_text(json.dumps(credits, ensure_ascii=False, indent=2), encoding='utf-8')
 
     with VideoFileClip(str(output)) as check:
@@ -285,27 +320,50 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
         return round(check.duration, 2)
 
 
-def _load_overlay(path):
-    """Load a transparent text overlay PNG (BGRA); missing/old renders are skipped."""
+def _prepare_overlay(path, size):
+    """Load a transparent text layer once, cropped to its ink.
+
+    The words cover a fraction of the portrait frame, so blending only that
+    sub-rectangle instead of the full 1080x1920 keeps the compositing pass
+    cheap: the mask, its inverse and the premultiplied colour are computed
+    here (once per scene), not for every one of the ~1,500 frames.
+    """
     import cv2
+    import numpy as np
     overlay = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
     if overlay is None or overlay.ndim != 3 or overlay.shape[2] != 4:
         return None
-    return overlay
+    width, height = size
+    if overlay.shape[0] != height or overlay.shape[1] != width:
+        overlay = cv2.resize(overlay, (width, height), interpolation=cv2.INTER_AREA)
+    alpha = overlay[:, :, 3]
+    x, y, w, h = cv2.boundingRect((alpha > 6).astype(np.uint8))
+    if w <= 0 or h <= 0:
+        return None
+    patch = overlay[y:y + h, x:x + w]
+    mask = patch[:, :, 3:4].astype(np.float32) / 255.0
+    colour = patch[:, :, :3].astype(np.float32)
+    return {'x': x, 'y': y, 'w': w, 'h': h, 'mask': mask,
+            'inverse': 1.0 - mask, 'premultiplied': colour * mask}
 
 
 def _apply_overlay(frame, overlay):
     """Composite the static words over an animated frame, preserving the photo behind."""
-    if overlay is None:
+    if not overlay:
         return frame
-    import cv2
     import numpy as np
-    if frame.shape[0] != overlay.shape[0] or frame.shape[1] != overlay.shape[1]:
-        overlay = cv2.resize(overlay, (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_AREA)
-    alpha = overlay[:, :, 3:4].astype(np.float32) / 255.0
-    colour = overlay[:, :, :3].astype(np.float32)
-    out = frame.astype(np.float32) * (1.0 - alpha) + colour * alpha
-    return np.clip(out, 0, 255).astype(np.uint8)
+    frame_h, frame_w = frame.shape[:2]
+    x = overlay['x']
+    y = overlay['y']
+    w = min(overlay['w'], frame_w - x)
+    h = min(overlay['h'], frame_h - y)
+    if w <= 0 or h <= 0:
+        return frame
+    region = frame[y:y + h, x:x + w]
+    blended = region.astype(np.float32) * overlay['inverse'][:h, :w] + overlay['premultiplied'][:h, :w]
+    np.clip(blended, 0, 255, out=blended)
+    frame[y:y + h, x:x + w] = blended.astype(np.uint8)
+    return frame
 
 
 def _draw_progress(frame, fraction, colour_bgr, height=12):
@@ -340,16 +398,42 @@ def _decode_mono(path, sample_rate):
     return array.astype(np.float64)
 
 
+def _moving_average(values, window):
+    """Centred moving average in O(n) — no convolution over multi-million samples."""
+    import numpy as np
+    total = len(values)
+    window = max(1, min(int(window), total))
+    cumulative = np.concatenate(([0.0], np.cumsum(values, dtype=np.float64)))
+    starts = np.clip(np.arange(total) - window // 2, 0, total)
+    ends = np.clip(starts + window, 0, total)
+    return (cumulative[ends] - cumulative[starts]) / np.maximum(1, ends - starts)
+
+
+def _duck_gain(voice, sample_rate):
+    """Gain curve that pushes the ambient bed under the narration (~-7 dB).
+
+    Smooth 30 ms level detection plus a 250 ms attack/release window: the bed
+    never pumps audibly between Tamil syllables, but the words always win.
+    """
+    import numpy as np
+    level = _moving_average(np.abs(voice), int(0.030 * sample_rate))
+    loud = level[level > 1e-4]
+    reference = float(np.percentile(loud, 92)) if loud.size else 1.0
+    level = np.clip(level / max(reference, 1e-6), 0.0, 1.0)
+    level = _moving_average(level, int(0.250 * sample_rate))
+    return (1.0 - 0.60 * np.clip(level, 0.0, 1.0)).astype(np.float32)
+
+
 def _write_full_audio(folder, scenes, starts, raw, lead, cross, total, sample_rate, transitions):
     import numpy as np
     samples = int(round(total * sample_rate))
-    master = np.zeros(samples)
+    voice = np.zeros(samples)
     timeline = np.arange(samples) / sample_rate
     for index, scene in enumerate(scenes):
-        voice = _decode_mono(folder / f'voice-{index + 1}.mp3', sample_rate)
+        take = _decode_mono(folder / f'voice-{index + 1}.mp3', sample_rate)
         offset = int(round((starts[index] + lead) * sample_rate))
-        end = min(offset + len(voice), samples)
-        master[offset:end] += voice[:end - offset]
+        end = min(offset + len(take), samples)
+        voice[offset:end] += take[:end - offset]
     bed = _bed(timeline, sample_rate)
     swells = np.zeros(samples)
     for start, _overlap in transitions:
@@ -358,9 +442,11 @@ def _write_full_audio(folder, scenes, starts, raw, lead, cross, total, sample_ra
         frequency = 170 + (d / 0.60) * 540
         envelope = np.sin(np.pi * np.clip(d / 0.60, 0.0, 1.0)) ** 1.5
         swells = np.where(mask, np.sin(2 * np.pi * frequency * d) * envelope * 0.06, swells)
-    # Keep the narration clearly in front: the ambient pad is deliberately low
-    # under the voice, and transition swells never mask a sentence.
-    master = (master * 0.98 + bed * 0.45 + swells * 0.7)
+    # Sidechain-style ducking keeps the narration clearly in front of the pad,
+    # and the soft limiter stops AAC from clipping on plosives.
+    duck = _duck_gain(voice, sample_rate)
+    master = voice * 0.98 + bed * 0.55 * duck + swells * 0.7 * duck
+    master = np.tanh(master * 1.05) / np.tanh(1.05)
     master = np.clip(master, -1.0, 1.0)
     stereo = np.column_stack((master, master))
     pcm = (stereo * 32767.0).astype('<i2')

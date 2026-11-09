@@ -1,50 +1,55 @@
-# Auto-start for creator-platform services (Tailscale funnel + backend)
-# Registered as scheduled task "CreatorPlatformAutoStart" (AtLogOn)
+# Auto-start for creator-platform services (Tailscale funnel + backend).
+#
+# Optional: the Startup-folder watchdog (watchdog_at_logon.cmd) already
+# self-heals every 10 minutes. This script is a single-shot variant for a
+# Scheduled Task, and it is now self-locating: it works from any drive letter
+# and never assumes the old G:/E:/C:\Users\sys paths.
 
-# 0. Refresh PATH from registry (logon env can be stale) + make Node available
-#    for render_frames.cjs and npx; Node lives at C:\Users\sys\nodejs (user install).
+$ErrorActionPreference = 'SilentlyContinue'
+$root = Split-Path $PSScriptRoot -Parent
+$backendDir = Join-Path $root 'backend'
+$pythonw = Join-Path $backendDir '.venv\Scripts\pythonw.exe'
+
+# 0. Fresh PATH from the registry (logon environments can be stale).
 $machinePath = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
 $userPath = [Environment]::GetEnvironmentVariable('PATH', 'User')
 $env:PATH = "$machinePath;$userPath"
-if (Test-Path 'C:\Users\sys\nodejs') {
-    $env:PATH = 'C:\Users\sys\nodejs;' + $env:PATH
-}
 
-# 0b. Ensure Ollama server is running (history jobs need it). Idempotent.
-if ((Test-Path "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe") -and
+# 1. Ollama (history jobs use it).
+$ollama = Join-Path $env:LOCALAPPDATA 'Programs\Ollama\ollama.exe'
+if ((Test-Path $ollama) -and
     -not (Get-NetTCPConnection -LocalPort 11434 -State Listen -ErrorAction SilentlyContinue)) {
-    Start-Process -FilePath "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe" `
-        -ArgumentList 'serve' -WindowStyle Hidden
+    Start-Process -FilePath $ollama -ArgumentList 'serve' -WindowStyle Hidden
 }
 
-# 0c. Ensure the CreatorRecorder Chrome with DevTools port 9222 is up
-#     (YouTube upload automation attaches over CDP). Only after the profile
-#     has been created by the first manual login.
-$recorderProfile = "$env:LOCALAPPDATA\CreatorRecorder\chrome-profile"
-$chromeCandidates = @('C:\Program Files\Google\Chrome\Application\chrome.exe',
-                      'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
-                      "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe")
+# 2. CreatorRecorder Chrome with the DevTools port the upload scripts attach to.
+$recorderProfile = Join-Path $env:LOCALAPPDATA 'CreatorRecorder\chrome-profile'
+$chromeCandidates = @(
+    'C:\Program Files\Google\Chrome\Application\chrome.exe',
+    'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
+    (Join-Path $env:LOCALAPPDATA 'Google\Chrome\Application\chrome.exe')
+)
 if ((Test-Path $recorderProfile) -and
     -not (Get-NetTCPConnection -LocalPort 9222 -State Listen -ErrorAction SilentlyContinue)) {
-    $chrome = $chromeCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+    $chrome = $chromeCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
     if ($chrome) {
-        Start-Process -FilePath $chrome `
-            -ArgumentList '--remote-debugging-port=9222', "--user-data-dir=$recorderProfile",
-                          '--no-first-run', '--no-default-browser-check', '--start-minimized',
-                          'https://studio.youtube.com' `
+        Start-Process -FilePath $chrome -ArgumentList `
+            '--remote-debugging-port=9222', "--user-data-dir=$recorderProfile",
+            '--no-first-run', '--no-default-browser-check', '--start-minimized',
+            'https://studio.youtube.com' `
             -WindowStyle Minimized
     }
 }
 
-# 1. Ensure Tailscale funnel is on (idempotent - safe to run repeatedly)
-try {
-    & 'C:\Program Files\Tailscale\tailscale.exe' funnel --bg 8000 *> $null
-} catch {}
+# 3. Tailscale funnel (idempotent).
+$tailscale = 'C:\Program Files\Tailscale\tailscale.exe'
+if (Test-Path $tailscale) {
+    & $tailscale funnel --bg 8000 *> $null
+}
 
-# 2. Start backend only if port 8000 is not already listening
+# 4. Backend, only when port 8000 is not already listening.
 if (-not (Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue)) {
-    Start-Process -FilePath 'C:\Users\sys\AppData\Local\Temp\opencode\pyembed\python.exe' `
-        -ArgumentList 'start.py' `
-        -WorkingDirectory 'E:\my_tool\creator-platform\backend' `
-        -WindowStyle Hidden
+    if (Test-Path $pythonw) {
+        Start-Process -FilePath $pythonw -ArgumentList 'start.py' -WorkingDirectory $backendDir -WindowStyle Hidden
+    }
 }

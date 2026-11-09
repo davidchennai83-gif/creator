@@ -14,9 +14,11 @@ Why a separate module:
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import re
+from pathlib import Path
 
 import httpx
 from pydantic import BaseModel, Field, field_validator
@@ -95,24 +97,63 @@ def clear_ai_model() -> None:
         pass
 
 
+def discount_pct(product: dict) -> int:
+    """Whole-number discount from the catalogue price and MRP (0 when unknown)."""
+    try:
+        price = float(product.get("price") or 0)
+        mrp = float(product.get("mrp") or 0)
+    except (TypeError, ValueError):
+        return 0
+    return int(round((mrp - price) / mrp * 100)) if mrp > price > 0 else 0
+
+
 def _allowed_numbers(product: dict) -> set[str]:
-    return set(ARABIC_NUMBER.findall(json.dumps(product, ensure_ascii=False)))
+    nums = set(ARABIC_NUMBER.findall(json.dumps(product, ensure_ascii=False)))
+    pct = discount_pct(product)
+    if pct:
+        nums.add(str(pct))  # the video itself shows "NN% off"
+    return nums
 
 
 def _has_new_number(text: str, allowed: set[str]) -> bool:
     return any(number not in allowed for number in ARABIC_NUMBER.findall(text))
 
 
-def _has_banned_claim(text: str) -> bool:
+def _product_text(product: dict) -> str:
+    """Everything the catalogue itself says; claims found here are grounded."""
+    parts = [product.get("title"), product.get("title_ta")]
+    parts += list(product.get("features") or []) + list(product.get("cautions") or [])
+    return " ".join(str(p) for p in parts if p).lower()
+
+
+def _claim_regex(claim: str) -> re.Pattern:
+    # Whole-word match for English claims so "free" does not hit "carefree" and
+    # "cure" does not hit "secure". Tamil claims have no word boundaries, so they
+    # stay substring matches.
+    return re.compile(r"(?<![\w])" + re.escape(claim.lower()) + r"(?![\w])")
+
+
+_CLAIM_PATTERNS = [
+    (claim, _claim_regex(claim) if claim.isascii() else None) for claim in BANNED_CLAIMS
+]
+
+
+def _has_banned_claim(text: str, grounded: str = "") -> bool:
+    """True when ``text`` makes a banned claim the catalogue does not support."""
     low = (text or "").lower()
-    return any(claim.lower() in low for claim in BANNED_CLAIMS)
+    for claim, pattern in _CLAIM_PATTERNS:
+        hit = bool(pattern.search(low)) if pattern else claim.lower() in low
+        if hit and claim.lower() not in grounded:
+            return True
+    return False
 
 
-def _clean(text: str, fallback: str, allowed: set[str]) -> str:
+def _clean(text: str, fallback: str, allowed: set[str], grounded: str = "",
+           max_len: int = 100) -> str:
     text = " ".join(str(text or "").split())
-    if not text or not TAMIL.search(text):
+    if not text or not TAMIL.search(text) or len(text) > max_len:
         return fallback
-    if _has_banned_claim(text) or _has_new_number(text, allowed):
+    if _has_banned_claim(text, grounded) or _has_new_number(text, allowed):
         return fallback
     return text
 
@@ -127,17 +168,19 @@ def _feature_fallback(product: dict, index: int) -> str:
 def sanitize_copy(data: dict, product: dict) -> dict:
     """Keep safe AI lines, replace unsafe lines with catalogue facts."""
     allowed = _allowed_numbers(product)
+    grounded = _product_text(product)
     cautions = [str(c).strip() for c in (product.get("cautions") or []) if str(c).strip()]
     caution_fallback = cautions[0] if cautions else DEFAULT_CAUTION
+    raw_benefits = data.get("benefits_ta")
+    raw_benefits = list(raw_benefits) if isinstance(raw_benefits, (list, tuple)) else []
 
-    hook = _clean(data.get("hook_ta"), DEFAULT_HOOK, allowed)
+    hook = _clean(data.get("hook_ta"), DEFAULT_HOOK, allowed, grounded, 100)
     benefits = []
-    raw_benefits = list(data.get("benefits_ta") or [])
     for index in range(3):
         raw = raw_benefits[index] if index < len(raw_benefits) else ""
-        benefits.append(_clean(raw, _feature_fallback(product, index), allowed))
-    caution = _clean(data.get("caution_ta"), caution_fallback, allowed)
-    cta = _clean(data.get("cta_ta"), DEFAULT_CTA, allowed)
+        benefits.append(_clean(raw, _feature_fallback(product, index), allowed, grounded, 95))
+    caution = _clean(data.get("caution_ta"), caution_fallback, allowed, grounded, 100)
+    cta = _clean(data.get("cta_ta"), DEFAULT_CTA, allowed, grounded, 100)
     return {
         "hook_ta": hook,
         "benefits_ta": benefits,
@@ -181,9 +224,43 @@ def build_prompt(product: dict) -> str:
     )
 
 
+def _extract_json(content: str) -> dict:
+    """Parse model output; tolerate code fences and text around the JSON object."""
+    content = (content or "").strip()
+    if content.startswith("```"):
+        content = re.sub(r"^```(?:json)?\s*", "", content)
+        content = re.sub(r"\s*```$", "", content)
+    try:
+        data = json.loads(content)
+    except ValueError:
+        match = re.search(r"\{.*\}", content, re.S)
+        if not match:
+            raise
+        data = json.loads(match.group(0))
+    if not isinstance(data, dict):
+        raise ValueError("model did not return a JSON object")
+    return data
+
+
+def _cache_file(product: dict) -> Path | None:
+    """Cache key = model + prompt, so editing the product or prompt busts it."""
+    try:
+        from app import finds_agent
+
+        key = hashlib.sha256(
+            (settings.MEESHO_AI_MODEL + build_prompt(product)).encode("utf-8")
+        ).hexdigest()[:20]
+        folder = finds_agent._finds_dir() / "ai_copy"
+        folder.mkdir(parents=True, exist_ok=True)
+        return folder / f"{key}.json"
+    except Exception:
+        return None
+
+
 def _call_ollama(product: dict) -> dict:
     prompt = build_prompt(product)
-    with httpx.Client(timeout=httpx.Timeout(240, connect=10)) as client:
+    timeout = float(getattr(settings, "MEESHO_AI_TIMEOUT", 240) or 240)
+    with httpx.Client(timeout=httpx.Timeout(timeout, connect=10)) as client:
         response = client.post(
             settings.OLLAMA_BASE_URL.rstrip("/") + "/api/chat",
             json={
@@ -197,27 +274,41 @@ def _call_ollama(product: dict) -> dict:
             },
         )
         response.raise_for_status()
-    content = str(response.json().get("message", {}).get("content") or "").strip()
-    if content.startswith("```"):
-        content = re.sub(r"^```(?:json)?\s*", "", content)
-        content = re.sub(r"\s*```$", "", content)
-    return MeeshoCopy.model_validate_json(content).model_dump()
+    content = str(response.json().get("message", {}).get("content") or "")
+    # Parse loosely on purpose: sanitize_copy() validates line by line, so one
+    # bad line falls back to a catalogue fact instead of discarding all the copy
+    # (the strict MeeshoCopy model made a single long line cost the whole call).
+    return _extract_json(content)
 
 
 def generate_copy(product: dict) -> dict | None:
     """Return sanitised Tamil copy, or None when AI is disabled/unavailable."""
     if not getattr(settings, "MEESHO_AI_COPY", False):
         return None
+    cache = _cache_file(product)
+    if cache is not None and cache.exists():
+        try:
+            return sanitize_copy(json.loads(cache.read_text(encoding="utf-8")), product)
+        except Exception:
+            pass  # unreadable cache entry: regenerate
     try:
         data = _call_ollama(product)
-        return sanitize_copy(data, product)
+        copy = sanitize_copy(data, product)
     except Exception as exc:
         log.warning("Meesho AI copy unavailable, using template: %s", exc)
         return None
+    if cache is not None:
+        try:
+            cache.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        except OSError:
+            pass
+    return copy
 
 
 def apply_copy(points: list[dict], copy: dict, product: dict) -> list[dict]:
     """Rewrite only the human-facing lines; keep prices, links and image cards."""
+    if len(points) < 5:
+        return points  # unexpected layout: keep the deterministic template
     points = [dict(point) for point in points]
 
     points[0]["lines"] = ["Tamil Budget Finds", copy["hook_ta"]]
@@ -239,6 +330,13 @@ def apply_copy(points: list[dict], copy: dict, product: dict) -> list[dict]:
     links = points[4].get("links") or []
     if links:
         short_url = str(links[0].get("link") or "")
-    points[4]["lines"] = [copy["cta_ta"], "Meesho-ல order பண்ணுங்க"]
+    # Keep the template's store line: it names the real shop (Amazon, Flipkart...)
+    # instead of always saying Meesho.
+    old_lines = points[4].get("lines") or []
+    store_line = old_lines[1] if len(old_lines) > 1 else "Meesho-ல order பண்ணுங்க"
+    disclosure = points[4].get("disclosure")
+    points[4]["lines"] = [copy["cta_ta"], store_line] + ([disclosure] if disclosure else [])
     points[4]["text"] = f"{copy['cta_ta']} {short_url}".strip()
+    if disclosure:
+        points[4]["text"] += " (Affiliate link - I may earn a commission.)"
     return points
