@@ -117,6 +117,7 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
 
     from . import encoder
     from . import motion
+    from . import stock_video
     from . import video_gen
     from . import wan
     from .cues import build_phrases, speech_with_cues, write_srt
@@ -128,6 +129,20 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
     lead, tail, cross = 0.40, 0.55, 0.50
 
     background = prepare_backgrounds(points, kind, folder, progress)
+    # Real footage is fetched before the text frames so each scene's credit line
+    # names the camera operator instead of the still photo it replaces.
+    stock_clips, stock_credits = [], {}
+    if stock_video.enabled_for(kind):
+        progress('Searching real portrait footage for each scene')
+        stock_clips, credits = stock_video.prepare(points, kind, folder, progress)
+        for index, clip in enumerate(stock_clips):
+            if not clip:
+                continue
+            stock_credits[index] = credits[index]
+            if index < len(background):
+                background[index] = dict(background[index], video=True,
+                                         photographer=credits[index].get('photographer', ''))
+        progress(f'Real footage ready for {len(stock_credits)}/{len(points)} scenes')
     from .theme import theme_for
     theme = theme_for(kind)
     progress('Rendering Tamil scene frames with Chromium')
@@ -165,9 +180,8 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
     scene_count = content_count + 1
     total = starts[-1] + raw[-1]
 
-    # 2) Moving scene visuals: Wan 2.2 AI clip (opt-in), else an external AI
-    # provider clip, else local animation. Wan is budgeted to the opening scene
-    # because it needs minutes of GPU time per second of footage.
+    # 2) Moving scene visuals: real stock footage (opt-in), else Wan 2.2 AI
+    # clip (opt-in), else an external AI provider clip, else local animation.
     wan_ok = set()
     wan_done = set()
     if wan.enabled_for(kind) and wan.available():
@@ -183,7 +197,8 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
     provider = video_gen.provider_state()
     provider_ok = set()
     if provider['configured']:
-        pending = [i for i in range(content_count) if i not in wan_ok]
+        pending = [i for i in range(content_count)
+                   if i not in wan_ok and not (i < len(stock_clips) and stock_clips[i])]
         if pending:
             progress('Animating scenes with the video provider')
         for index in pending:
@@ -194,6 +209,7 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
                 progress(f'Scene {index + 1}: provider failed; using local motion')
                 break
             provider_ok.add(index)
+    stock_done = set()
     for index in range(content_count):
         progress(f'Building moving scene {index + 1}/{content_count}')
         base = folder / f'scene-{index + 1}.png'
@@ -202,6 +218,12 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
                                           raw[index], fps, width, height):
             wan_done.add(index)
             continue
+        if index < len(stock_clips) and stock_clips[index]:
+            progress(f'Cutting real footage for scene {index + 1}/{content_count}')
+            if stock_video.expand(stock_clips[index], scene_dir, raw[index], fps, width, height):
+                stock_done.add(index)
+                continue
+            progress(f'Scene {index + 1}: footage decode failed; using photo motion')
         if index in provider_ok:
             _extract_clip_frames(folder / f'clip-{index + 1}.mp4', scene_dir, fps, width, height)
         else:
@@ -308,6 +330,17 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
     for index, credit in enumerate(credits):
         if index in wan_done:
             credit['motion'] = 'wan-2.2-ai-clip'
+        elif index in stock_done:
+            # The still photo is no longer what the viewer sees: replace its
+            # credit with the actual clip so the review screen and the upload
+            # description credit Pexels for the footage, not the spare photo.
+            entry = stock_credits.get(index, {})
+            for stale in ('photo_id', 'photographer_url', 'fallback_reason'):
+                credit.pop(stale, None)
+            credit.update({key: value for key, value in entry.items() if key != 'scene'})
+            credit.update({'kind': 'video', 'provider': 'pexels',
+                           'license': 'Pexels license — free to use, credited here',
+                           'motion': 'real-stock-footage'})
         elif index in provider_ok:
             credit['motion'] = 'ai-provider-clip'
         else:

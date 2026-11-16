@@ -79,6 +79,16 @@ class Settings(BaseSettings):
     # video. CHANNEL_NAME is optional — leave it empty for a generic tagline.
     CHANNEL_NAME: str = ""
     OUTRO_SECONDS: float = 3.4
+    # Where a scene's moving background comes from. 'photos' animates a stock
+    # still (Ken Burns / parallax); 'stock' plays real portrait footage from
+    # Pexels Videos and only falls back to the photo when no clip matches.
+    VIDEO_SOURCE: str = "photos"
+    # Allow list for real footage when VIDEO_SOURCE=stock; empty = every kind.
+    # e.g. "history,news" keeps slow downloads off the 8-minute morning gaps.
+    STOCK_VIDEO_KINDS: str = ""
+    # Meesho scenes must show the actual catalogue product, and news scenes use
+    # the article's own feed photo, which is more relevant than generic footage.
+    STOCK_SKIP_KINDS: str = "meesho,news"
     # 'local' renders animated-image motion (Ken Burns / parallax / particles).
     # 'http' connects a generic image-to-video/text-to-video API (see video_gen.py).
     VIDEO_PROVIDER: str = "local"

@@ -122,6 +122,9 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
           : `${badge} · ${day}`;
         if (product) footer += demoProduct ? ' | Illustrative product image' : ' | Product image';
         else if (background?.provider === 'feed') footer += ' | Feed image';
+        // A scene that will be replaced by real footage must not credit the
+        // spare still photo; the video credit is filled in per scene.
+        else if (photo && background.video) footer += ` | Footage: ${background.photographer} / Pexels`;
         else if (photo) footer += ` | Illustrative photo: ${background.photographer} / Pexels`;
         else if (background) footer += ` | Illustration: ${background.topic}`;
         document.querySelector('footer').textContent = footer;

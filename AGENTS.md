@@ -70,6 +70,14 @@ of writing ad-hoc SQL.
   and `WAN_TIMEOUT` caps a stuck job before the video falls back to motion.
   Never start it while an upload is running: it needs ~6 GB VRAM and a lot of
   RAM.
+- Real footage backgrounds: `VIDEO_SOURCE=stock` replaces the Ken Burns photo
+  with a portrait Pexels video clip per scene (`stock_video.py`). Search words
+  come from the point's own `photo_query`, else the local Ollama model turns
+  the Tamil title into English nouns (cached per text), else a kind preset.
+  Meesho stays on product photos (`STOCK_SKIP_KINDS`), and any scene whose clip
+  is missing, too slow or fails to decode keeps its animated photo, so a Pexels
+  outage never fails a render. Clips are cached by Pexels id under
+  `storage/video_creator/pexels-cache` and pruned past 8 GB.
 - Encoder: `h264_nvenc` (p7, `VIDEO_CQ`) with automatic `libx264` fallback.
   `VIDEO_FPS=30`, output is limited-range BT.709, audio 48 kHz.
 
