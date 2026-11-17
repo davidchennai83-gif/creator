@@ -167,6 +167,16 @@ def test_kind_is_registered_everywhere():
     assert jobs.new  # importing the job store keeps the kind list authoritative
 
 
+def test_the_daily_hook_rotation_covers_cinema():
+    """A new kind must not fall back to the generic "இன்றைய வீடியோ" opener."""
+    from app.growth import playbook
+    hooks = playbook.HOOKS["cinema"]
+    assert len(hooks) >= 3
+    assert all("சினிமா" in hook or "திரை" in hook or "கோலிவுட்" in hook for hook in hooks)
+    assert playbook.variant_for("cinema", "2026-11-18")["hook"] in hooks
+    assert theme.theme_for("cinema")["hook"] in hooks
+
+
 def test_upload_metadata_covers_cinema_with_sources():
     assert "cinema" in content.KINDS
     job = {
