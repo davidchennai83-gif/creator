@@ -14,7 +14,7 @@ interface VoiceConfig { enabled: boolean; interval_minutes: number; voice: strin
 interface VoiceStatus { config: VoiceConfig; findings: VoiceFindings | null; events: VoiceEvent[]; checked_at: string | null; voices: Record<string, string>; running: boolean }
 interface NarrationVideo { id: string; kind: string; status: string; has_narration: boolean; narrated_files: number; files: string[] }
 
-const KIND_LABEL: Record<string, string> = { history: 'Day of History', 'indian-law': 'Indian Law', 'make-money': 'Make Money', news: 'Tamil News', thirukkural: 'Thirukkural', english: 'Spoken English', gk: 'Amazing Facts', health: 'Health Tips', motivation: 'Life Lessons', kids: 'Kids Learning' };
+const KIND_LABEL: Record<string, string> = { history: 'Day of History', 'indian-law': 'Indian Law', 'make-money': 'Make Money', news: 'Tamil News', cinema: 'Tamil Cinema News', thirukkural: 'Thirukkural', english: 'Spoken English', gk: 'Amazing Facts', health: 'Health Tips', motivation: 'Life Lessons', kids: 'Kids Learning' };
 
 function Chip({ ok, label, icon: Icon }: { ok: boolean; label: string; icon: typeof Server }) {
   return (

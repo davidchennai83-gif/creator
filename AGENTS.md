@@ -51,9 +51,24 @@ of writing ad-hoc SQL.
 
 - Daily render schedule (Asia/Kolkata): news 05:30, health 05:50, motivation
   06:10, history 08:00, indian-law 08:05, make-money 08:20, kids 08:40,
-  thirukkural 09:00, english 09:20, gk 09:40, meesho 19:00.
+  thirukkural 09:00, english 09:20, gk 09:40, cinema 09:55, meesho 19:00.
 - Uploads: YouTube 11:00, Facebook 15:30, Instagram 15:45. Meesho uploads at
-  19:20 / 19:45 / 20:00.
+  19:20 / 19:45 / 20:00. The YouTube run uploads `news` first, then `cinema`,
+  then the rest, so the two time-sensitive bulletins never lose the race.
+- Two bulletins share one engine: `news/__init__.py` holds the RSS parsing,
+  duplicate detection, attribution and narration, and a `Profile` only names
+  what differs (feeds, filters, caps, labels). `cinema/__init__.py` is that
+  profile (`PROFILE`) plus `create_script`. A new bulletin edition means a new
+  profile, never a copy of the engine.
+- Cinema bulletin sources: Ananda Vikatan's cinema desk (`SHOWBIZ` filter, it
+  also republishes the day's general trending story), Sathiyam TV cinema, and
+  the general newsroom feeds read through `FILM_STORY`. The filter looks at the
+  headline and section only, because a general feed's body copy often name-drops
+  a film. Feeds with no usable text (hashtag-only captions) still run, but the
+  selection prefers stories it can actually narrate.
+- A bulletin scene keeps the publisher's own photo of that story (`provider`
+  `feed`); real footage only fills scenes whose feed image could not be
+  downloaded. `stock_video.prepare(..., skip=...)` is how that is enforced.
 - Every YouTube upload is cross-posted to Facebook and Instagram. Descriptions
   include the YouTube link with `?sub_confirmation=1`.
 - Upload automation drives the already signed-in Chrome profile
@@ -95,8 +110,10 @@ of writing ad-hoc SQL.
   something in the query; an unlabelled photo is accepted as unknown, a
   contradicting label is rejected in favour of the topic illustration.
 - Meesho stays on product photos and news stays on its publisher image
-  (`STOCK_SKIP_KINDS`). Clips are cached by Pexels id under
-  `storage/video_creator/pexels-cache` and pruned past 8 GB.
+  (`STOCK_SKIP_KINDS`). Cinema news is not in that list: its publisher photo is
+  used when it exists, and the footage search covers the scenes without one.
+  Clips are cached by Pexels id under `storage/video_creator/pexels-cache` and
+  pruned past 8 GB.
 - Encoder: `h264_nvenc` (p7, `VIDEO_CQ`) with automatic `libx264` fallback.
   `VIDEO_FPS=30`, output is limited-range BT.709, audio 48 kHz.
 

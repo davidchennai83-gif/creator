@@ -133,8 +133,13 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
     # names the camera operator instead of the still photo it replaces.
     stock_clips, stock_credits = [], {}
     if stock_video.enabled_for(kind):
+        # A scene that already holds the publisher's own photo of that story (or
+        # a product photo) is more relevant than any generic clip, so it is left
+        # alone and the footage search only runs for the remaining scenes.
+        keep = {index for index, item in enumerate(background)
+                if item.get('provider') in ('feed', 'product')}
         progress('Searching real portrait footage for each scene')
-        stock_clips, credits = stock_video.prepare(points, kind, folder, progress)
+        stock_clips, credits = stock_video.prepare(points, kind, folder, progress, skip=keep)
         for index, clip in enumerate(stock_clips):
             if not clip:
                 continue

@@ -20,7 +20,7 @@ router = APIRouter()
 
 
 class Request(BaseModel):
-    kind: Literal['history', 'indian-law', 'make-money', 'news', 'thirukkural', 'english', 'gk', 'health', 'motivation', 'kids', 'meesho'] = 'history'
+    kind: Literal['history', 'indian-law', 'make-money', 'news', 'cinema', 'thirukkural', 'english', 'gk', 'health', 'motivation', 'kids', 'meesho'] = 'history'
     day: date = Field(default_factory=lambda: datetime.now(timezone(timedelta(hours=5, minutes=30))).date())
     voice: Literal['ta-IN-PallaviNeural', 'ta-IN-ValluvarNeural', 'ta-LK-KumarNeural', 'ta-LK-SaranyaNeural', 'ta-MY-KaniNeural', 'ta-MY-SuryaNeural', 'ta-SG-AnbuNeural', 'ta-SG-VenbaNeural'] = 'ta-IN-PallaviNeural'
     # Voice-over delivery, passed straight to edge-tts. Example: rate "+15%", pitch "-5Hz", volume "+10%".
@@ -126,6 +126,7 @@ def _mp4(job, job_id: UUID, format: str):
     if job['status'] != 'complete' or not path.is_file():
         raise HTTPException(409, 'MP4 is not ready')
     prefix = {'indian-law': 'indian-law', 'make-money': 'make-money', 'news': 'tamil-news',
+              'cinema': 'tamil-cinema-news',
               'thirukkural': 'thirukkural', 'english': 'spoken-english', 'gk': 'amazing-facts',
               'health': 'health-tips', 'motivation': 'life-lessons', 'kids': 'kids-learning',
               'meesho': 'tamil-budget-finds'}.get(job.get('kind'), 'day-of-history')

@@ -16,6 +16,8 @@ _CREATORS = {
                    'Five ideas ready, four Tamil lines each. Review the lines, then render.'),
     'news': ('news', 'create_script', 'Reading today’s Tamil news RSS feeds',
              'Ten Tamil news stories ready with source images and credits. Review, then render.'),
+    'cinema': ('cinema', 'create_script', 'Reading today’s Tamil cinema RSS feeds',
+               'Ten Tamil cinema stories ready with source images and credits. Review, then render.'),
     'thirukkural': ('thirukkural', 'create_script', 'Choosing today’s Thirukkural couplets',
                     'Two Thirukkural couplets ready with the Tamil meaning. Review, then render.'),
     'english': ('english', 'create_script', 'Choosing today’s spoken-English phrases',

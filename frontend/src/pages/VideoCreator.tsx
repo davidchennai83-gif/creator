@@ -3,7 +3,7 @@ import api, { Envelope, errorMessage } from '../services/apiClient';
 import ShareMenu from '../components/ShareMenu';
 import { TAMIL_VOICES } from '../constants/voices';
 
-type Kind = 'history' | 'indian-law' | 'make-money' | 'news' | 'thirukkural' | 'english' | 'gk' | 'health' | 'motivation' | 'kids' | 'meesho';
+type Kind = 'history' | 'indian-law' | 'make-money' | 'news' | 'cinema' | 'thirukkural' | 'english' | 'gk' | 'health' | 'motivation' | 'kids' | 'meesho';
 interface Point { year?: string; title?: string; title_display?: string; title_en?: string; title_ta?: string; sections?: string; text: string; lines: string[]; lines_display?: string[]; links?: {title: string; link: string}[]; product_id?: string; product_title?: string; product_title_ta?: string; category?: string; price?: number; mrp?: number; rating?: number; orders_count?: number; features?: string[]; cautions?: string[]; short_url?: string; demo?: boolean; image_url?: string }
 interface Job { id: string; kind?: Kind; date: string; status: string; message: string; points: Point[]; duration?: number; model: string; media_sources?: {scene: number; provider: string; source_url?: string; photographer?: string; license?: string}[]; subtitles?: {start: number; end: number; text: string}[] }
 interface Capabilities { model: string; installed: boolean; mode: string; internet_required: string }
@@ -22,6 +22,9 @@ const KINDS: Record<Kind, KindConfig> = {
   'news': { label: 'Tamil News', file: 'tamil-news', createTitle: "Create today's Tamil news video", shape: '10 recent Tamil news stories with source images and credits.',
     script: 'Live Tamil RSS feeds (no model needed)', dateLabel: 'Daily bulletin date', generate: 'Generate 10 news stories', details: 'RSS sources and images',
     note: 'Ten stories from public Tamil publisher RSS feeds (BBC Tamil, Daily Thanthi, Hindu Tamil, Polimer News, Maalai Malar, Sathiyam TV). Each scene shows the publisher image, two short attributed sentences from the publisher summary, and an on-screen source credit; the description lists every source link. Set NEWS_AI_REWRITE=true to rewrite in our own words with the local model. Feed images belong to their publishers — review the source list before monetising.' },
+  'cinema': { label: 'Tamil Cinema News', file: 'tamil-cinema-news', createTitle: "Create today's Tamil cinema news video", shape: '10 recent Tamil cinema stories with source images and credits.',
+    script: 'Live Tamil cinema RSS feeds (no model needed)', dateLabel: 'Daily bulletin date', generate: 'Generate 10 cinema stories', details: 'RSS sources and images',
+    note: 'Ten film stories from Ananda Vikatan\'s cinema feed, Sathiyam TV cinema and the film stories in the Tamil newsroom feeds (Daily Thanthi, Hindu Tamil, Maalai Malar, Polimer News, BBC Tamil). Each scene shows the publisher image, two short attributed Tamil sentences and an on-screen source credit; the description lists every source link. Feed images belong to their publishers — review the source list before monetising.' },
   'thirukkural': { label: 'Thirukkural', file: 'thirukkural', createTitle: "Create today's Thirukkural video", shape: '2 couplets, each with its Tamil meaning.',
     script: 'Bundled Thirukkural (offline, no model)', dateLabel: 'Daily edition date', generate: 'Generate 2 couplets in Tamil', details: 'Couplet and meaning',
     note: 'Two couplets a day with the standard Tamil explanation, from the full public-domain Thirukkural bundled inside the app — no internet and no language model needed. Only the Virtue and Wealth sections (kurals 1-1080) are used, so the channel stays family friendly. The daily pair never repeats for 540 days.' },
@@ -145,6 +148,12 @@ export default function VideoCreator() {
           <span className="text-sky-300 text-sm">TAMIL NEWS · DAILY 10</span>
           <h2 className="text-2xl font-bold mt-2">DAILY NEWS</h2>
           <p lang="ta" className="mt-3">இன்றைய 10 முக்கிய செய்திகள் — RSS ஊடகங்களில் இருந்து, படம் + ஆதாரத்துடன்.</p>
+          <p className="mt-2">Click to create →</p>
+        </button>
+        <button disabled={busy} onClick={()=>{setKind('cinema');setOpen(true);setSelected(undefined);setPreview(null);}} className="flex-1 text-left rounded-xl bg-pink-950 text-white p-8 w-full border border-pink-400">
+          <span className="text-pink-300 text-sm">KOLLYWOOD · DAILY 10</span>
+          <h2 className="text-2xl font-bold mt-2">TAMIL CINEMA NEWS</h2>
+          <p lang="ta" className="mt-3">இன்றைய 10 திரைச் செய்திகள் — RSS ஊடகங்களில் இருந்து, படம் + ஆதாரத்துடன்.</p>
           <p className="mt-2">Click to create →</p>
         </button>
         <button disabled={busy} onClick={()=>{setKind('thirukkural');setOpen(true);setSelected(undefined);setPreview(null);}} className="flex-1 text-left rounded-xl bg-amber-950 text-white p-8 w-full border border-orange-400">

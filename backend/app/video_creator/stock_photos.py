@@ -32,6 +32,7 @@ QUERIES = {
     # Daily news fallbacks (used only when the story's own feed image cannot be
     # downloaded): the picture illustrates the topic, never a named person.
     'news': 'newspaper headlines', 'globe': 'world map globe',
+    'cinema': 'cinema theatre entrance',
     # How to Make Money topics
     'pen': 'writing notebook desk', 'laptop': 'laptop work desk', 'play': 'video editing computer',
     'mic': 'podcast microphone studio', 'camera': 'photographer camera', 'coin': 'coins savings',
@@ -382,7 +383,7 @@ def prepare_backgrounds(points, kind, folder, progress):
         for index, point in enumerate(points):
             fallback = illustration(point, kind, index)
             query = query_for(point, kind, fallback['topic'])
-            if kind == 'news' and point.get('image_url'):
+            if kind in ('news', 'cinema') and point.get('image_url'):
                 progress(f'News photo {index + 1}/{len(points)}')
                 feed_image = _feed_image(client, point.get('image_url'), cache)
                 if feed_image:

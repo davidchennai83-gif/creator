@@ -3,7 +3,7 @@ import { Film, Clock, Share2 } from 'lucide-react';
 import { Card } from '../components/common/Card';
 
 const shortcuts = [
-  { to: '/video-creator', title: 'Video Creator', text: 'Generate Tamil History, Indian Law, How to Make Money, Tamil News, Thirukkural, Spoken English, Amazing Facts, Health Tips, Life Lessons and Kids Learning, then download the MP4.', icon: Film },
+  { to: '/video-creator', title: 'Video Creator', text: 'Generate Tamil History, Indian Law, How to Make Money, Tamil News, Tamil Cinema News, Thirukkural, Spoken English, Amazing Facts, Health Tips, Life Lessons and Kids Learning, then download the MP4.', icon: Film },
   { to: '/scheduler', title: 'Task Scheduler', text: 'Schedule daily, weekly or monthly video generation.', icon: Clock },
   { to: '/social', title: 'Social Media', text: 'Open YouTube, Facebook and Instagram to upload your videos.', icon: Share2 },
 ];

@@ -36,6 +36,8 @@ THEMES = {
     'motivation': {'accent': '#fde68a', 'badge': 'LIFE LESSONS · 3',         'hook': 'இன்றைய 3 பாடங்கள்'},
     'news':       {'accent': '#7dd3fc', 'badge': 'TAMIL NEWS · 10',          'hook': 'இன்றைய 10 முக்கிய செய்திகள்',
                    'cta': 'முழு விவரம் source link-ல · Like · Share · Subscribe'},
+    'cinema':     {'accent': '#f9a8d4', 'badge': 'CINEMA NEWS · 10',         'hook': 'இன்றைய 10 திரைச் செய்திகள்',
+                   'cta': 'முழு விவரம் source link-ல · Like · Share · Subscribe'},
     'meesho':     {'accent': '#fb7185', 'badge': 'TAMIL BUDGET FINDS',       'hook': 'இன்றைய Budget Pick',
                    'cta': 'Link-ல click பண்ணி வாங்குங்க · Like · Share'},
 }

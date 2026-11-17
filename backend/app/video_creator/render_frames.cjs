@@ -86,6 +86,7 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
 
         const law = kind === 'indian-law';
         const money = kind === 'make-money';
+        const bulletin = kind === 'news' || kind === 'cinema';
         const compact = law || money;
         const stock = ['pexels', 'pixabay', 'unsplash', 'openverse', 'commons'].includes(background?.provider);
         const photo = background?.provider === 'feed' || stock;
@@ -107,7 +108,7 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
 
         const title = document.querySelector('h1');
         title.textContent = compact ? (point.title_display || point.title) : (point.year || point.title || '');
-        let titleSize = product ? 42 : law ? 38 : money ? 46 : kind === 'meesho' ? 50 : kind === 'news' ? 48 : 54;
+        let titleSize = product ? 42 : law ? 38 : money ? 46 : kind === 'meesho' ? 50 : bulletin ? 48 : 54;
         title.style.fontSize = `${titleSize}px`;
 
         const demoProduct = kind === 'meesho' && (
@@ -118,7 +119,7 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
           : money ? 'Educational ideas · Results vary · Not financial advice'
           : kind === 'meesho'
             ? `Tamil Budget Finds · ${demoProduct ? 'Demo product · Search link' : 'Affiliate link'} · Price may change`
-          : kind === 'news'
+          : bulletin
             ? `செய்தி ஆதாரம்: ${point.source_name || 'RSS'} · ${point.published || day}`
           : kind === 'history' ? 'Wikipedia via History API · AI Tamil narration'
           : `${badge} · ${day}`;

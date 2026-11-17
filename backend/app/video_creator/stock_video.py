@@ -38,6 +38,8 @@ KIND_QUERIES = {
                 'old manuscript paper', 'stone sculpture india'),
     'news': ('india city street', 'newspaper printing press', 'rain clouds city',
              'crowd walking india', 'traffic india'),
+    'cinema': ('cinema theatre entrance', 'film camera crew', 'movie set lights',
+               'crowd theatre night', 'video editing studio'),
     'health': ('fresh vegetables market', 'sleeping bedroom', 'walking park morning',
                'drinking water glass', 'yoga stretching'),
     'motivation': ('sunrise mountain', 'running track morning', 'open notebook desk',
@@ -179,8 +181,9 @@ def _ollama_query(text, cache, timeout=90):
 # Kinds whose catalogue photo_query is one constant string for every item, so it
 # would select the same clip day after day. Their own English title is a better
 # description of what each scene is about. (Other catalogue kinds carry a
-# different, specific query per item and keep it.)
-PER_ITEM_TEXT = {'thirukkural'}
+# different, specific query per item and keep it.) A bulletin belongs here too:
+# every scene of it would otherwise search the same "cinema theatre entrance".
+PER_ITEM_TEXT = {'thirukkural', 'cinema'}
 
 
 def _topic_text(point):
@@ -281,17 +284,19 @@ def _download(client, link, cache, video_id):
     return path
 
 
-def prepare(points, kind, folder, progress, need=None):
+def prepare(points, kind, folder, progress, need=None, skip=None):
     """Download one portrait clip per point.
 
     Pexels is asked first (largest catalogue, one key also serves photos), then
     Pixabay when it has no fresh matching clip. Returns ``(clips, credits)``
     aligned with ``points``; a slot is ``None`` when no usable footage was found
-    and the caller must keep its photo animation.
+    and the caller must keep its photo animation. ``skip`` holds scene indexes
+    that must keep their own picture (a publisher's photo of the actual story).
     """
     key = settings.PEXELS_API_KEY.get_secret_value()
     cache = _cache_dir()
     _prune_cache(cache)
+    skip = set(skip or ())
     clips, credits = [], []
     # Ids already used by recent videos stay out, so a fixed query cannot put the
     # same clip in every video for weeks.
@@ -305,6 +310,11 @@ def prepare(points, kind, folder, progress, need=None):
     }
     with httpx.Client(timeout=httpx.Timeout(20, connect=8), follow_redirects=False) as client:
         for index, point in enumerate(points):
+            if index in skip:
+                clips.append(None)
+                credits.append({'scene': index + 1, 'query': point.get('photo_query', ''),
+                                'video_reason': 'the story keeps its own publisher photo'})
+                continue
             query = query_for(point, kind, index, cache)
             credits_entry = {'query': query, 'scene': index + 1}
             seconds = needs[index] if index < len(needs) else 10.0

@@ -19,6 +19,7 @@ PROJECTS = [{'id': 'history', 'name': 'Day of History', 'description': '10 histo
             {'id': 'indian-law', 'name': 'Indian Law — Daily 5 Acts', 'description': '5 Acts · 4 Tamil lines each'},
             {'id': 'make-money', 'name': 'How to Make Money — 5 ideas', 'description': '5 ideas · 4 Chennai-Tamil lines each'},
             {'id': 'news', 'name': 'Tamil News — Daily 10', 'description': '10 Tamil news stories · RSS images · source credits'},
+            {'id': 'cinema', 'name': 'Tamil Cinema News — Daily 10', 'description': '10 Tamil cinema stories · RSS images · source credits'},
             {'id': 'thirukkural', 'name': 'Thirukkural — Daily 2 Couplets', 'description': '2 couplets · Tamil meaning · 540-day cycle'},
             {'id': 'english', 'name': 'Spoken English — Daily Phrases', 'description': '3 phrases · Tamil meaning · 1,140-day cycle'},
             {'id': 'gk', 'name': 'Amazing Facts — Daily GK', 'description': '3 facts · spoken Tamil · 1,140-day cycle'},

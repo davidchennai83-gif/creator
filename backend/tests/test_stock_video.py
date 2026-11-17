@@ -108,6 +108,27 @@ def test_prepare_downloads_caches_and_credits(configured, monkeypatch):
     assert len(requests) <= 3  # Search JSON and clip are reused, not refetched.
 
 
+def test_a_scene_that_keeps_its_publisher_photo_is_skipped(configured, monkeypatch):
+    """News/cinema scenes keep the story's own photo; no clip is fetched for them."""
+    requests = []
+
+    def handle(request):
+        requests.append(str(request.url))
+        if request.url.host == 'api.pexels.com':
+            return httpx.Response(200, json={'videos': [video(21)]})
+        return httpx.Response(200, content=b'\0' * 200_000)
+
+    transport(monkeypatch, handle)
+    points = [{'title': 'A', 'photo_query': 'newspaper headlines'}, {'title': 'B'}]
+    clips, credits = stock.prepare(points, 'cinema', configured, lambda _: None, skip={0})
+    assert clips[0] is None
+    assert credits[0]['video_reason'] == 'the story keeps its own publisher photo'
+    assert credits[0]['scene'] == 1
+    assert clips[1]['id'] == 21
+    # Only the second scene was searched for.
+    assert sum(1 for url in requests if 'api.pexels.com' in url) == 1
+
+
 def test_recent_video_is_not_reused(configured, monkeypatch):
     def handle(request):
         if request.url.host == 'api.pexels.com':
