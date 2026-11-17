@@ -14,7 +14,11 @@ from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 from app.config.settings import settings
 from . import commons
 from . import fresh
+from . import openverse
+from . import pixabay
 from . import search_text
+from . import stock_image
+from . import unsplash
 from .backgrounds import illustration
 
 QUERIES = {
@@ -79,20 +83,35 @@ def _search(client, query, cache, key, page=1):
 
 
 def _pick_photo(photos, blocked, query):
-    """First unused photo that describes the query, else first unused photo.
+    """First unused photo that describes the query, else one with no alt text.
 
     ``alt`` is Pexels' own description of the picture, so it is a reliable label
-    for rejecting a loose match without needing a vision model.
+    for rejecting a loose match without needing a vision model. A photo labelled
+    something else is skipped rather than shown: an unrelated picture is the
+    complaint this pipeline exists to fix.
     """
     unused = [photo for photo in photos if str(photo.get('id')) not in blocked]
-    if not unused:
-        return None
     return (next((p for p in unused if search_text.matches(query, p.get('alt'))), None)
-            or unused[0])
+            or next((p for p in unused if not str(p.get('alt') or '').strip()), None))
+
+
+SOURCE_NAMES = {
+    'pexels': 'Pexels', 'pixabay': 'Pixabay', 'unsplash': 'Unsplash',
+    'openverse': 'Openverse', 'commons': 'Wikimedia Commons',
+}
+# Order matters: catalogues with strong hand-written labels come first, and the
+# broad keyless aggregator comes last because its anonymous quota is tiny.
+PHOTO_SOURCES = ('pexels', 'pixabay', 'unsplash', 'openverse', 'commons')
+PEXELS_LICENSE = 'Pexels license — free to use, credited here'
+
+
+def _entry(provider, **fields):
+    """One normalised record for every provider, so the caller stays generic."""
+    return dict(fields, provider=provider, source_name=SOURCE_NAMES[provider])
 
 
 def _pexels_scene(client, query, cache, key, blocked, disabled_reason):
-    """(photo, jpeg bytes) from Pexels, or ValueError explaining why not."""
+    """(entry, jpeg bytes) from Pexels, or ValueError explaining why not."""
     if disabled_reason:
         raise ValueError(disabled_reason)
     # Page 2 is fetched only when page 1 has nothing usable (all used or all
@@ -104,19 +123,100 @@ def _pexels_scene(client, query, cache, key, blocked, disabled_reason):
         photo = _pick_photo(photos, blocked, query)
     if not photo:
         raise ValueError('No unused matching photo')
-    return photo, _image(client, photo, cache)
+    return _entry('pexels', id=photo['id'], photographer=photo.get('photographer', ''),
+                  source_url=photo.get('url', ''),
+                  license=PEXELS_LICENSE,
+                  license_url='https://www.pexels.com/license/'), _image(client, photo, cache)
+
+
+def _pixabay_scene(client, query, cache, blocked):
+    """(entry, jpeg bytes) from Pixabay, or ValueError."""
+    hit = pixabay.pick_photo(pixabay.photos(client, query), blocked, query)
+    if not hit:
+        raise ValueError('No unused Pixabay photo')
+    data = stock_image.download(client, pixabay.photo_link(hit), pixabay.CDN_HOSTS)
+    return _entry('pixabay', **pixabay.photo_credit(hit)), stock_image.portrait(data)
+
+
+def _unsplash_scene(client, query, cache, blocked):
+    """(entry, jpeg bytes) from Unsplash, or ValueError."""
+    if not unsplash.configured():
+        raise ValueError('Unsplash key not configured')
+    photo = unsplash.pick_photo(unsplash.search(client, query), blocked, query)
+    if not photo:
+        raise ValueError('No unused Unsplash photo')
+    data = stock_image.download(client, unsplash.photo_link(photo), unsplash.CDN_HOSTS)
+    return _entry('unsplash', **unsplash.photo_credit(photo)), stock_image.portrait(data)
+
+
+def _openverse_scene(client, query, cache, blocked):
+    """(entry, jpeg bytes) from Openverse, or ValueError.
+
+    Openverse sources live on many hosts, so a fixed allow-list cannot apply;
+    the URL must pass the project's public-address guard instead, and only that
+    one validated host is allowed for the download.
+    """
+    item = openverse.pick_photo(openverse.search(client, query), blocked, query)
+    if not item:
+        raise ValueError('No unused Openverse image')
+    link = openverse.photo_link(item)
+    from app.store import _is_public_http_url
+    if not _is_public_http_url(link):
+        raise ValueError('Openverse returned a non-public image URL')
+    data = stock_image.download(client, link, ((urlparse(link).hostname or '').lower(),))
+    return _entry('openverse', **openverse.photo_credit(item)), stock_image.portrait(data)
 
 
 def _commons_scene(client, query, cache, blocked):
-    """(image, 1080x1920 jpeg) from Wikimedia Commons, or ValueError."""
+    """(entry, 1080x1920 jpeg) from Wikimedia Commons, or ValueError."""
     images = commons.search_images(client, query, cache)
+    # Commons file names always describe the object, so a title that names none
+    # of the query words is the loose-search case that produced the off-topic
+    # backgrounds; the topic illustration is a better result than that.
     image = next((item for item in images if str(item['id']) not in blocked
                   and search_text.matches(query, item['title'])), None)
     if not image:
-        image = next((item for item in images if str(item['id']) not in blocked), None)
-    if not image:
-        raise ValueError('No free-licence Commons image')
-    return image, commons.portrait(commons.download(client, image, cache))
+        raise ValueError('No matching free-licence Commons image')
+    return (_entry('commons', id=image['id'],
+                   photographer=image['artist'] or SOURCE_NAMES['commons'],
+                   source_url=image['page'],
+                   license=image['license'],
+                   license_url=image['license_url']),
+            commons.portrait(commons.download(client, image, cache)))
+
+
+def _scene_from(provider, client, query, cache, key, blocked, blockers):
+    if provider == 'pexels':
+        return _pexels_scene(client, query, cache, key, blocked, blockers.get('pexels', ''))
+    if provider == 'pixabay':
+        return _pixabay_scene(client, query, cache, blocked)
+    if provider == 'unsplash':
+        return _unsplash_scene(client, query, cache, blocked)
+    if provider == 'openverse':
+        return _openverse_scene(client, query, cache, blocked)
+    return _commons_scene(client, query, cache, blocked)
+
+
+def _note_failure(blockers, provider, exc):
+    """Remember a source that is out of quota or offline, so later scenes skip it."""
+    name = SOURCE_NAMES.get(provider, provider)
+    if isinstance(exc, httpx.HTTPStatusError):
+        status = exc.response.status_code
+        if status in (401, 403, 429):
+            blockers[provider] = f'{name} unavailable (HTTP {status})'
+    elif isinstance(exc, httpx.RequestError):
+        blockers[provider] = f'{name} network unavailable'
+
+
+def _reason(provider, exc):
+    """One plain sentence for the review screen, never a traceback."""
+    name = SOURCE_NAMES.get(provider, provider)
+    if isinstance(exc, httpx.HTTPStatusError):
+        return f'{name} unavailable (HTTP {exc.response.status_code})'
+    if isinstance(exc, httpx.RequestError):
+        return f'{name} network unavailable'
+    message = str(exc).strip()
+    return f'{name}: {message}' if message else f'{name} returned nothing usable'
 
 
 def _product_image(client, value, cache):
@@ -270,7 +370,14 @@ def prepare_backgrounds(points, kind, folder, progress):
     cache = Path(settings.STORAGE_PATH) / 'video_creator' / 'pexels-cache'
     backgrounds, credits, used = [], [], set()
     cache.mkdir(parents=True, exist_ok=True)
-    disabled_reason = 'Pexels key not configured' if not key else ''
+    # One blocker per source: a 429/401 stops that source for the rest of the
+    # render instead of spending a request per scene on a dead quota.
+    blockers = {
+        'pexels': 'Pexels key not configured' if not key else '',
+        'pixabay': '' if pixabay.configured() else 'Pixabay key not configured',
+        'unsplash': '' if unsplash.configured() else 'Unsplash key not configured',
+        'openverse': '', 'commons': '',
+    }
     with httpx.Client(timeout=httpx.Timeout(12, connect=5), follow_redirects=False) as client:
         for index, point in enumerate(points):
             fallback = illustration(point, kind, index)
@@ -306,41 +413,31 @@ def prepare_backgrounds(points, kind, folder, progress):
             credit = {'scene': index + 1, 'provider': 'illustration', 'query': query}
             progress(f'Background photo {index + 1}/{len(points)}: {query}')
             blocked = {str(asset_id) for asset_id in used} | fresh.recent('photo')
-            image = None
-            for provider_name in ('pexels', 'commons'):
+            image, last_error = None, ''
+            for provider_name in PHOTO_SOURCES:
+                if blockers.get(provider_name):
+                    continue
                 try:
-                    if provider_name == 'pexels':
-                        found, image = _pexels_scene(client, query, cache, key, blocked, disabled_reason)
-                    else:
-                        found, image = _commons_scene(client, query, cache, blocked)
+                    found, image = _scene_from(provider_name, client, query, cache, key,
+                                               blocked, blockers)
                 except (httpx.HTTPError, ValueError, KeyError, OSError) as exc:
-                    if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code in (401, 403, 429):
-                        disabled_reason = f'Pexels unavailable (HTTP {exc.response.status_code})'
-                    elif isinstance(exc, httpx.RequestError):
-                        disabled_reason = 'Pexels network unavailable'
+                    _note_failure(blockers, provider_name, exc)
+                    last_error = _reason(provider_name, exc)
                     continue
                 used.add(str(found['id']))
                 fresh.remember('photo', [found['id']])
-                data = 'data:image/jpeg;base64,' + base64.b64encode(image).decode()
-                if provider_name == 'pexels':
-                    background.update(provider='pexels', image=data,
-                                      photographer=found['photographer'])
-                    credit.update(provider='pexels', photo_id=found['id'],
+                background.update(provider=found['provider'], image='data:image/jpeg;base64,'
+                                  + base64.b64encode(image).decode(),
                                   photographer=found['photographer'],
-                                  source_url=found['url'],
-                                  photographer_url=found.get('photographer_url', ''),
-                                  license_url='https://www.pexels.com/license/')
-                else:
-                    background.update(provider='commons', image=data,
-                                      photographer=found['artist'] or 'Wikimedia Commons')
-                    credit.update(provider='commons', commons_id=found['id'],
-                                  photographer=found['artist'] or 'Wikimedia Commons',
-                                  source_url=found['page'],
-                                  license=found['license'],
-                                  license_url=found['license_url'])
+                                  source_name=found['source_name'])
+                credit.update(provider=found['provider'], photo_id=found['id'],
+                              photographer=found['photographer'],
+                              source_url=found['source_url'],
+                              license=found['license'],
+                              license_url=found['license_url'])
                 break
             if image is None:
-                credit['fallback_reason'] = disabled_reason or 'No usable stock photo for this scene'
+                credit['fallback_reason'] = last_error or 'No free-licence photo matched this scene'
                 progress(f"Scene {index + 1}: {credit['fallback_reason']}; using illustration")
             backgrounds.append(background)
             credits.append(credit)

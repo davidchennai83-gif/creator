@@ -70,6 +70,14 @@ class Settings(BaseSettings):
     NEWS_MODEL: str = "gemma3:4b"
     HISTORY_FONT: str = "C:/Windows/Fonts/Nirmala.ttf"
     PEXELS_API_KEY: SecretStr = SecretStr("")
+    # Optional extra free libraries. Empty = skipped, and the render still runs
+    # on whatever is configured (Pexels plus keyless Commons/Openverse).
+    # Pixabay: photos and portrait clips under the Pixabay Content License.
+    # Unsplash: photos only, 50 requests/hour on the free developer key.
+    # Openverse: works anonymously, a token only raises its small request limit.
+    PIXABAY_API_KEY: SecretStr = SecretStr("")
+    UNSPLASH_ACCESS_KEY: SecretStr = SecretStr("")
+    OPENVERSE_TOKEN: SecretStr = SecretStr("")
 
     # Video rendering: portrait short-video output and optional AI video provider.
     VIDEO_OUTPUT_WIDTH: int = 1080

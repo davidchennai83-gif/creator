@@ -16,6 +16,10 @@ def configured(monkeypatch, tmp_path):
     monkeypatch.setattr(stock.settings, 'STOCK_VIDEO_KINDS', '')
     monkeypatch.setattr(stock.settings, 'STOCK_SKIP_KINDS', 'meesho,news')
     monkeypatch.setattr(stock.settings, 'STOCK_REUSE_DAYS', 21)
+    # Optional extras stay off unless a test asks for them.
+    monkeypatch.setattr(stock.settings, 'PIXABAY_API_KEY', SecretStr(''))
+    monkeypatch.setattr(stock.settings, 'UNSPLASH_ACCESS_KEY', SecretStr(''))
+    monkeypatch.setattr(stock.settings, 'OPENVERSE_TOKEN', SecretStr(''))
     # The local model is optional: a deterministic phrase keeps the test offline.
     monkeypatch.setattr(stock, '_ollama_query', lambda text, cache, timeout=90: 'ancient temple india')
     return tmp_path
@@ -109,7 +113,6 @@ def test_recent_video_is_not_reused(configured, monkeypatch):
         if request.url.host == 'api.pexels.com':
             return httpx.Response(200, json={'videos': [video(11), video(12)]})
         return httpx.Response(200, content=b'\0' * 200_000)
-
     transport(monkeypatch, handle)
     first = stock.prepare([{'title': 'A'}], 'history', configured, lambda _: None)[0][0]
     second = stock.prepare([{'title': 'A'}], 'history', configured, lambda _: None)[0][0]
@@ -141,6 +144,53 @@ def test_untrusted_clip_host_is_rejected(configured, monkeypatch):
     clips, credits = stock.prepare([{'title': 'A'}], 'history', configured, lambda _: None)
     assert clips == [None]
     assert 'download failed' in credits[0]['video_reason']
+
+
+def test_pixabay_clip_is_used_when_pexels_has_none(configured, monkeypatch):
+    monkeypatch.setattr(stock.settings, 'PIXABAY_API_KEY', SecretStr('pb-key'))
+
+    def handle(request):
+        if request.url.host == 'api.pexels.com':
+            return httpx.Response(200, json={'videos': []})
+        if request.url.host == 'pixabay.com':
+            assert request.url.params['key'] == 'pb-key'
+            assert request.url.path == '/api/videos/'
+            return httpx.Response(200, json={'hits': [{
+                'id': 9, 'duration': 30, 'user': 'PB Filmer', 'tags': 'ancient temple ruins',
+                'pageURL': 'https://pixabay.com/videos/id-9/',
+                'videos': {'large': {'url': 'https://cdn.pixabay.com/video/9.mp4',
+                                     'width': 1080, 'height': 1920}}}]})
+        assert request.url.host == 'cdn.pixabay.com'
+        return httpx.Response(200, content=b'\0' * 200_000)
+
+    transport(monkeypatch, handle)
+    clips, credits = stock.prepare([{'title': 'A'}], 'history', configured, lambda _: None)
+    assert clips[0]['id'] == 'pixabay-9' and clips[0]['path'].is_file()
+    assert credits[0]['provider'] == 'pixabay'
+    assert credits[0]['source_name'] == 'Pixabay'
+    assert credits[0]['video_id'] == 'pixabay-9'
+    assert 'pb-key' not in json.dumps(credits)
+
+
+def test_pexels_quota_still_lets_pixabay_answer(configured, monkeypatch):
+    """A dead Pexels quota must not also lose the Pixabay catalogue."""
+    monkeypatch.setattr(stock.settings, 'PIXABAY_API_KEY', SecretStr('pb-key'))
+
+    def handle(request):
+        if request.url.host == 'api.pexels.com':
+            return httpx.Response(429, json={})
+        if request.url.host == 'pixabay.com':
+            return httpx.Response(200, json={'hits': [{
+                'id': 3, 'duration': 30, 'user': 'PB Filmer', 'tags': 'ancient temple ruins',
+                'pageURL': 'https://pixabay.com/videos/id-3/',
+                'videos': {'large': {'url': 'https://cdn.pixabay.com/video/3.mp4',
+                                     'width': 1080, 'height': 1920}}}]})
+        return httpx.Response(200, content=b'\0' * 200_000)
+
+    transport(monkeypatch, handle)
+    clips, credits = stock.prepare([{'title': 'A'}], 'history', configured, lambda _: None)
+    assert clips[0]['id'] == 'pixabay-3'
+    assert credits[0]['provider'] == 'pixabay'
 
 
 def test_expand_writes_exact_scene_frames(tmp_path):

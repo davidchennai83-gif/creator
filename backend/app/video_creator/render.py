@@ -141,7 +141,8 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
             stock_credits[index] = credits[index]
             if index < len(background):
                 background[index] = dict(background[index], video=True,
-                                         photographer=credits[index].get('photographer', ''))
+                                         photographer=credits[index].get('photographer', ''),
+                                         source_name=credits[index].get('source_name', 'Pexels'))
         progress(f'Real footage ready for {len(stock_credits)}/{len(points)} scenes')
     from .theme import theme_for
     theme = theme_for(kind)
@@ -335,11 +336,13 @@ def render_scenes(points, folder, day, voice, progress, kind, rate, pitch, volum
             # credit with the actual clip so the review screen and the upload
             # description credit Pexels for the footage, not the spare photo.
             entry = stock_credits.get(index, {})
-            for stale in ('photo_id', 'photographer_url', 'fallback_reason'):
+            for stale in ('photo_id', 'photographer_url', 'fallback_reason', 'video_reason'):
                 credit.pop(stale, None)
             credit.update({key: value for key, value in entry.items() if key != 'scene'})
-            credit.update({'kind': 'video', 'provider': 'pexels',
-                           'license': 'Pexels license — free to use, credited here',
+            credit.update({'kind': 'video',
+                           'provider': entry.get('provider', 'pexels'),
+                           'license': entry.get('license',
+                                                'Pexels license — free to use, credited here'),
                            'motion': 'real-stock-footage'})
         elif index in provider_ok:
             credit['motion'] = 'ai-provider-clip'

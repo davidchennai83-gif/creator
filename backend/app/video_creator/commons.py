@@ -9,7 +9,6 @@ refused: the videos are monetised, the frames are cropped, and ShareAlike would
 require licensing the whole video under the same terms.
 """
 import hashlib
-import io
 import json
 import re
 import time
@@ -17,9 +16,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import httpx
-from PIL import Image, ImageOps
 
 from app.config.settings import settings
+from . import stock_image
 
 API = 'https://commons.wikimedia.org/w/api.php'
 USER_AGENT = 'CreatorPlatform/1.0 (https://github.com/davidchennai83-gif/creator) python-httpx'
@@ -123,11 +122,4 @@ def download(client, image, cache=None):
 
 def portrait(data):
     """Cover-crop to the 1080x1920 output frame so a wide photo fills the scene."""
-    with Image.open(io.BytesIO(data)) as image:
-        image = ImageOps.exif_transpose(image).convert('RGB')
-        if image.width * image.height > 40_000_000:
-            raise ValueError('image exceeds pixel limit')
-        frame = ImageOps.fit(image, (1080, 1920), method=Image.Resampling.LANCZOS)
-        output = io.BytesIO()
-        frame.save(output, format='JPEG', quality=88)
-        return output.getvalue()
+    return stock_image.portrait(data)

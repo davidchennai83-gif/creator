@@ -27,6 +27,7 @@ import httpx
 
 from app.config.settings import settings
 from . import fresh
+from . import pixabay
 from . import search_text
 
 API = 'https://api.pexels.com/videos/search'
@@ -261,7 +262,8 @@ def _pick(videos, need, used, query=''):
 
 def _download(client, link, cache, video_id):
     host = (urlparse(link).hostname or '').lower()
-    if host != 'videos.pexels.com' and not host.endswith('.pexels.com'):
+    if not any(host == name or host.endswith('.' + name)
+               for name in ('videos.pexels.com', 'cdn.pixabay.com')):
         raise ValueError('unexpected video host')
     path = cache / f'video-{video_id}.mp4'
     if path.is_file() and path.stat().st_size > 100_000:
@@ -282,12 +284,12 @@ def _download(client, link, cache, video_id):
 def prepare(points, kind, folder, progress, need=None):
     """Download one portrait clip per point.
 
-    Returns ``(clips, credits)`` aligned with ``points``; a slot is ``None`` when
-    no usable footage was found and the caller must keep its photo animation.
+    Pexels is asked first (largest catalogue, one key also serves photos), then
+    Pixabay when it has no fresh matching clip. Returns ``(clips, credits)``
+    aligned with ``points``; a slot is ``None`` when no usable footage was found
+    and the caller must keep its photo animation.
     """
     key = settings.PEXELS_API_KEY.get_secret_value()
-    if not key:
-        return [None] * len(points), [{'video_reason': 'Pexels key not configured'}] * len(points)
     cache = _cache_dir()
     _prune_cache(cache)
     clips, credits = [], []
@@ -295,50 +297,58 @@ def prepare(points, kind, folder, progress, need=None):
     # same clip in every video for weeks.
     used = {str(asset_id) for asset_id in fresh.recent('video')}
     needs = list(need or [10.0] * len(points))
-    blocked = ''
+    # A quota/authorisation failure latches per source: every scene keeps its
+    # photo anyway, so retrying the same dead quota only makes the render slower.
+    blockers = {
+        'pexels': '' if key else 'Pexels key not configured',
+        'pixabay': '' if pixabay.configured() else 'Pixabay key not configured',
+    }
     with httpx.Client(timeout=httpx.Timeout(20, connect=8), follow_redirects=False) as client:
         for index, point in enumerate(points):
-            if blocked:
-                clips.append(None)
-                credits.append({'scene': index + 1, 'video_reason': blocked})
-                continue
             query = query_for(point, kind, index, cache)
             credits_entry = {'query': query, 'scene': index + 1}
+            seconds = needs[index] if index < len(needs) else 10.0
             candidates = [query]
             words = query.split()
             if len(words) > 3:
                 candidates.append(' '.join(words[:3]))
             candidates.append(KIND_QUERIES.get(kind, GENERIC)[index % len(KIND_QUERIES.get(kind, GENERIC))])
             found = None
-            for attempt, text in enumerate(dict.fromkeys(candidates)):
-                progress(f'Stock video {index + 1}/{len(points)}: {text}')
-                for page in (1, 2):
+            for provider in ('pexels', 'pixabay'):
+                if found or blockers[provider]:
+                    continue
+                for text in dict.fromkeys(candidates):
+                    progress(f'Stock video {index + 1}/{len(points)}: {text}')
                     try:
-                        videos = _search(client, text, cache, key, page=page)
-                        found = _pick(videos, needs[index] if index < len(needs) else 10.0,
-                                      used, text)
+                        if provider == 'pexels':
+                            found = None
+                            for page in (1, 2):
+                                videos = _search(client, text, cache, key, page=page)
+                                found = _pick(videos, seconds, used, text)
+                                if found:
+                                    break
+                        else:
+                            found = pixabay.pick_video(pixabay.videos(client, text, cache),
+                                                       seconds, used, text)
                     except httpx.HTTPStatusError as exc:
                         found = None
-                        # 429 is the hourly API quota: retrying the remaining scenes
-                        # only deepens it, and every scene keeps its photo anyway.
                         if exc.response.status_code in (401, 403, 429):
-                            blocked = f'Pexels unavailable (HTTP {exc.response.status_code})'
+                            blockers[provider] = ('Pexels' if provider == 'pexels' else 'Pixabay') \
+                                + f' unavailable (HTTP {exc.response.status_code})'
                             break
                     except (httpx.HTTPError, ValueError, KeyError):
                         found = None
-                    if found or blocked:
-                        break
-                if found or blocked:
-                    if found and attempt:
+                    if found:
                         credits_entry['query'] = text
-                    break
-            if blocked:
-                credits_entry['video_reason'] = blocked
-                clips.append(None)
-                credits.append(credits_entry)
-                continue
+                        break
             if not found:
-                credits_entry['video_reason'] = 'no matching portrait clip'
+                # Prefer a real failure over "key not configured": the second
+                # message is what actually stopped the search this time.
+                reasons = [message for message in blockers.values() if message]
+                reason = next((message for message in reasons
+                               if 'key not configured' not in message), '')
+                credits_entry['video_reason'] = reason or (reasons[0] if reasons else '') \
+                    or 'no matching portrait clip'
                 clips.append(None)
                 credits.append(credits_entry)
                 continue
@@ -354,10 +364,13 @@ def prepare(points, kind, folder, progress, need=None):
             fresh.remember('video', [video['id']])
             clips.append({'path': path, 'duration': float(video['duration']), 'id': video['id']})
             credits_entry.update({
-                'provider': 'pexels', 'kind': 'video', 'video_id': video['id'],
+                'provider': video.get('provider', 'pexels'),
+                'source_name': video.get('source_name', 'Pexels'),
+                'kind': 'video', 'video_id': video['id'],
                 'photographer': (video.get('user') or {}).get('name', ''),
                 'source_url': video.get('url', ''),
-                'license_url': 'https://www.pexels.com/license/',
+                'license': video.get('license', 'Pexels license — free to use, credited here'),
+                'license_url': video.get('license_url', 'https://www.pexels.com/license/'),
             })
             credits.append(credits_entry)
     return clips, credits

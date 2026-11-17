@@ -71,21 +71,29 @@ of writing ad-hoc SQL.
   Never start it while an upload is running: it needs ~6 GB VRAM and a lot of
   RAM.
 - Real footage backgrounds: `VIDEO_SOURCE=stock` replaces the Ken Burns photo
-  with a portrait Pexels video clip per scene (`stock_video.py`). Search words
-  come from the point's own `photo_query`, else the local Ollama model turns
-  the item's English title into a "what the camera sees" phrase (cached per
-  text), else a kind preset. Two guards keep footage on-topic: a result must
-  share a meaningful word with its own Pexels slug, and animated/motion-graphic
-  clips are refused. Anything else keeps its photo animation, so a Pexels
-  outage never fails a render.
+  with a portrait video clip per scene (`stock_video.py`), Pexels first and
+  Pixabay when Pexels has no fresh match. Search words come from the point's
+  own `photo_query`, else the local Ollama model turns the item's English title
+  into a "what the camera sees" phrase (cached per text), else a kind preset.
+  Guards keep footage on-topic: a result must share a meaningful word with its
+  own Pexels slug / Pixabay tags, animated and motion-graphic clips are refused,
+  and a visual adjective alone ("glowing") never counts as a match. Anything
+  else keeps its photo animation, so a source outage never fails a render.
 - Backgrounds never repeat: `fresh.py` records every photo/video id in
   `storage/video_creator/used-media.json` and the pickers skip ids used inside
   `STOCK_REUSE_DAYS` (21). The first run seeds the file from past jobs'
   `media_sources`, so yesterday's pictures are not shown again.
-- Second free photo source: `commons.py` (Wikimedia Commons, no API key, CC0 /
-  PD / CC BY only, NC/ND/BY-SA refused) is tried when Pexels has no fresh,
-  matching photo. Commons is a library rather than a stock site, so queries
-  like "palm leaf manuscript" return the actual object.
+- Photo sources, in order: Pexels -> Pixabay -> Unsplash -> Openverse ->
+  Wikimedia Commons. Pexels / Pixabay keys and the Unsplash key live in
+  `backend/.env`; a source with no key is simply skipped. Commons and Openverse
+  need no key, so the pipeline still gets fresh, on-topic photos without one.
+  Commons is tried last but is the most literal: it is a library, so "palm leaf
+  manuscript" returns the actual object rather than a lookalike stock photo.
+  Only CC0 / public domain / plain CC BY are accepted (NC, ND and BY-SA refused
+  because the videos are monetised and cropped). Every provider's own label
+  (Pexels alt, Pixabay tags, Unsplash alt, Commons file name) must name
+  something in the query; an unlabelled photo is accepted as unknown, a
+  contradicting label is rejected in favour of the topic illustration.
 - Meesho stays on product photos and news stays on its publisher image
   (`STOCK_SKIP_KINDS`). Clips are cached by Pexels id under
   `storage/video_creator/pexels-cache` and pruned past 8 GB.

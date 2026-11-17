@@ -87,9 +87,10 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
         const law = kind === 'indian-law';
         const money = kind === 'make-money';
         const compact = law || money;
-        const commons = background?.provider === 'commons';
-        const photo = background?.provider === 'pexels' || background?.provider === 'feed' || commons;
+        const stock = ['pexels', 'pixabay', 'unsplash', 'openverse', 'commons'].includes(background?.provider);
+        const photo = background?.provider === 'feed' || stock;
         const product = kind === 'meesho' && background?.provider === 'product';
+        const source = background?.source_name || (background?.provider === 'commons' ? 'Wikimedia Commons' : 'Pexels');
         document.body.classList.toggle('photo', photo);
         document.body.classList.toggle('product', product);
 
@@ -125,9 +126,8 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
         else if (background?.provider === 'feed') footer += ' | Feed image';
         // A scene that will be replaced by real footage must not credit the
         // spare still photo; the video credit is filled in per scene.
-        else if (photo && background.video) footer += ` | Footage: ${background.photographer} / Pexels`;
-        else if (commons) footer += ` | Photo: ${background.photographer} / Wikimedia Commons`;
-        else if (photo) footer += ` | Illustrative photo: ${background.photographer} / Pexels`;
+        else if (photo && background.video) footer += ` | Footage: ${background.photographer} / ${source}`;
+        else if (photo) footer += ` | Photo: ${background.photographer} / ${source}`;
         else if (background) footer += ` | Illustration: ${background.topic}`;
         document.querySelector('footer').textContent = footer;
 
