@@ -15,6 +15,7 @@ def configured(monkeypatch, tmp_path):
     monkeypatch.setattr(stock.settings, 'VIDEO_SOURCE', 'stock')
     monkeypatch.setattr(stock.settings, 'STOCK_VIDEO_KINDS', '')
     monkeypatch.setattr(stock.settings, 'STOCK_SKIP_KINDS', 'meesho,news')
+    monkeypatch.setattr(stock.settings, 'STOCK_REUSE_DAYS', 21)
     # The local model is optional: a deterministic phrase keeps the test offline.
     monkeypatch.setattr(stock, '_ollama_query', lambda text, cache, timeout=90: 'ancient temple india')
     return tmp_path
@@ -25,10 +26,10 @@ def transport(monkeypatch, handler):
     monkeypatch.setattr(stock.httpx, 'Client', lambda **kwargs: client(transport=httpx.MockTransport(handler), **kwargs))
 
 
-def video(video_id, duration=20, width=1080, height=1920, host='videos.pexels.com'):
+def video(video_id, duration=20, width=1080, height=1920, host='videos.pexels.com', slug='ancient-temple'):
     return {
         'id': video_id, 'duration': duration, 'user': {'name': f'Filmer {video_id}'},
-        'url': f'https://www.pexels.com/video/clip-{video_id}/',
+        'url': f'https://www.pexels.com/video/{slug}-{video_id}/',
         'video_files': [{'file_type': 'video/mp4', 'width': width, 'height': height,
                          'link': f'https://{host}/video-files/{video_id}.mp4'}],
     }
@@ -48,6 +49,23 @@ def test_clean_keeps_only_concrete_words():
     assert stock._clean('Sleep, night, 7 hours of darkness.') == 'sleep night hours darkness'
 
 
+def test_unrelated_slug_is_not_a_match():
+    festival = video(5, slug='vibrant-tamil-hindu-festival-celebration')
+    assert stock._matches('ancient tamil palm leaf manuscript', festival) is False
+    assert stock._matches('ancient tamil palm leaf manuscript', video(6, slug='old-palm-leaf-manuscript')) is True
+
+
+def test_a_visual_adjective_alone_is_not_a_match():
+    # "glowing" is how the shot looks; "script" is what it must show.
+    assert stock._matches('ancient script glowing softly', video(7, slug='3d-render-glowing-lines')) is False
+    assert stock._matches('ancient script glowing softly', video(8, slug='hand-writing-script-on-paper')) is True
+
+
+def test_motion_graphics_are_not_footage():
+    assert stock._matches('glowing script', video(9, slug='a-3d-animation-of-a-glowing-geometric-design')) is False
+    assert stock._matches('glowing script', video(10, slug='glowing-script-on-stone')) is True
+
+
 def test_pick_prefers_portrait_and_skips_used():
     videos = [
         video(1, width=1920, height=1080),        # landscape: unusable
@@ -55,14 +73,14 @@ def test_pick_prefers_portrait_and_skips_used():
         video(3),
         video(4),
     ]
-    chosen = stock._pick(videos, 10.0, used=set())
+    chosen = stock._pick(videos, 10.0, used=set(), query='temple')
     assert chosen[0]['id'] == 3
-    assert stock._pick(videos, 10.0, used={3})[0]['id'] == 4
+    assert stock._pick(videos, 10.0, used={'3'}, query='temple')[0]['id'] == 4
 
 
 def test_pick_keeps_search_ranking_between_long_enough_clips():
     videos = [video(1, duration=25), video(2, duration=12)]
-    assert stock._pick(videos, 10.0, used=set())[0]['id'] == 1
+    assert stock._pick(videos, 10.0, used=set(), query='temple')[0]['id'] == 1
 
 
 def test_prepare_downloads_caches_and_credits(configured, monkeypatch):
@@ -83,7 +101,19 @@ def test_prepare_downloads_caches_and_credits(configured, monkeypatch):
     assert 'test-secret' not in json.dumps(credits)
 
     stock.prepare([{'title': 'தமிழ்'}], 'history', configured, lambda _: None)
-    assert len(requests) == 2  # Search JSON and clip are reused, not refetched.
+    assert len(requests) <= 3  # Search JSON and clip are reused, not refetched.
+
+
+def test_recent_video_is_not_reused(configured, monkeypatch):
+    def handle(request):
+        if request.url.host == 'api.pexels.com':
+            return httpx.Response(200, json={'videos': [video(11), video(12)]})
+        return httpx.Response(200, content=b'\0' * 200_000)
+
+    transport(monkeypatch, handle)
+    first = stock.prepare([{'title': 'A'}], 'history', configured, lambda _: None)[0][0]
+    second = stock.prepare([{'title': 'A'}], 'history', configured, lambda _: None)[0][0]
+    assert first['id'] != second['id']
 
 
 @pytest.mark.parametrize('status', [401, 403, 429])

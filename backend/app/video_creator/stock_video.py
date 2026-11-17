@@ -26,6 +26,8 @@ from urllib.parse import urlparse
 import httpx
 
 from app.config.settings import settings
+from . import fresh
+from . import search_text
 
 API = 'https://api.pexels.com/videos/search'
 
@@ -120,11 +122,29 @@ def _clean(phrase):
     return ' '.join(words)
 
 
+# Words that describe the channel, not the shot. They must never be what makes a
+# search result "relevant": "ancient tamil palm leaf manuscript" once matched a
+# Tamil festival dance clip through "tamil" alone.
+GENERIC = search_text.GENERIC
+
+
+def _matches(query, video):
+    """True when the clip's own Pexels slug describes something we asked for.
+
+    Pexels free-text search is loose: it returns festival dances for manuscript
+    queries. The slug (…/video/tamil-festival-dance-123/) is Pexels' own label,
+    so requiring one shared meaningful word rejects the worst mismatches, and
+    animated/graphics clips are refused because the channel promises real video.
+    """
+    slug = urlparse(str(video.get('url') or '')).path
+    return search_text.footage(slug) and search_text.matches(query, slug)
+
+
 def _ollama_query(text, cache, timeout=90):
-    """English filming phrase for Tamil text, cached forever (the text is the key)."""
+    """English filming phrase for a topic, cached forever (the text is the key)."""
     if not text.strip():
         return ''
-    path = cache / f'llm2-{_sha(text)[:24]}.txt'
+    path = cache / f'llm4-{_sha(text)[:24]}.txt'
     try:
         phrase = path.read_text(encoding='utf-8').strip()
         if phrase:
@@ -132,17 +152,19 @@ def _ollama_query(text, cache, timeout=90):
     except OSError:
         pass
     url = (settings.OLLAMA_BASE_URL or 'http://localhost:11434').rstrip('/') + '/api/generate'
-    prompt = ('You name stock-video shots. Given a Tamil title and line, reply with ONE line of 2-4 English '
-              'words describing a common scene a camera can film (place, object, weather, food, crowd) that '
-              'suits the topic. Prefer India when it fits naturally. No names, no dates, no abstract words, '
-              'no punctuation, no explanation.\n'
-              f'Title: {text[:180]}\nShot:')
+    prompt = ('You describe one stock-footage shot for a short video. Given the topic, reply with ONE line of '
+              '2-4 English words for what a viewer would SEE on screen, as a simple action or object: '
+              '"hands sharing food", "child writing letters", "waves hitting rocks", "salt being harvested". '
+              'Name the picture, not the moral or the lesson. No names, no dates, no festival or dance unless '
+              'the topic is about it, no punctuation, no second line.\n'
+              f'Topic: {text[:240]}\nShot:')
     body = {'model': settings.OLLAMA_MODEL or 'gemma3:4b', 'prompt': prompt, 'stream': False,
-            'options': {'temperature': 0.2, 'num_predict': 24}}
+            'options': {'temperature': 0.3, 'num_predict': 24}}
     try:
         response = httpx.post(url, json=body, timeout=timeout)
         response.raise_for_status()
-        phrase = _clean(response.json().get('response', ''))
+        answer = str(response.json().get('response', '')).strip().splitlines()
+        phrase = _clean(next((line for line in answer if line.strip()), ''))
     except (httpx.HTTPError, ValueError, KeyError):
         return ''
     if phrase:
@@ -153,23 +175,45 @@ def _ollama_query(text, cache, timeout=90):
     return phrase
 
 
+# Kinds whose catalogue photo_query is one constant string for every item, so it
+# would select the same clip day after day. Their own English title is a better
+# description of what each scene is about. (Other catalogue kinds carry a
+# different, specific query per item and keep it.)
+PER_ITEM_TEXT = {'thirukkural'}
+
+
+def _topic_text(point):
+    """Best English description available for the local model."""
+    parts = [str(point.get('title_en') or point.get('title') or '').strip()]
+    parts += [str(line).strip() for line in (point.get('lines') or [])[:2]]
+    return '. '.join(part for part in parts if part)
+
+
 def query_for(point, kind, index, cache):
-    """Point's own query, else the local model, else a kind preset."""
-    for field in ('video_query', 'photo_query'):
-        value = str(point.get(field) or '').strip()
-        if value:
-            return value if len(value.split()) <= 5 else _clean(value) or value
-    title = str(point.get('title') or '')
-    line = ' '.join(str(x) for x in (point.get('lines') or [])[:1])
-    phrase = _ollama_query(f'{title}. {line}', cache)
+    """What to search, most specific first.
+
+    An explicit per-item ``video_query`` wins. Kinds whose ``photo_query`` is a
+    single constant use the local model on the item's own English title instead.
+    Otherwise the point's photo query is concrete enough to reuse.
+    """
+    explicit = str(point.get('video_query') or '').strip()
+    if explicit:
+        return explicit
+    photo_query = str(point.get('photo_query') or '').strip()
+    name = str(kind).strip().lower()
+    if photo_query and name not in PER_ITEM_TEXT:
+        return photo_query if len(photo_query.split()) <= 5 else _clean(photo_query) or photo_query
+    phrase = _ollama_query(_topic_text(point), cache)
     if phrase:
         return phrase
+    if photo_query:
+        return photo_query
     presets = KIND_QUERIES.get(kind, GENERIC)
     return presets[index % len(presets)]
 
 
-def _search(client, query, cache, key):
-    path = cache / (f'video-{_sha(query)[:24]}.json')
+def _search(client, query, cache, key, page=1):
+    path = cache / (f'video-{_sha(f"{query}|{page}")[:24]}.json')
     try:
         if time.time() - path.stat().st_mtime < 86400:
             return json.loads(path.read_text(encoding='utf-8'))
@@ -177,23 +221,25 @@ def _search(client, query, cache, key):
         pass
     response = client.get(API, headers={'Authorization': key},
                           params={'query': query, 'orientation': 'portrait',
-                                  'size': 'medium', 'per_page': 15})
+                                  'size': 'medium', 'per_page': 15, 'page': page})
     response.raise_for_status()
     videos = response.json().get('videos', [])
     path.write_text(json.dumps(videos), encoding='utf-8')
     return videos
 
 
-def _pick(videos, need, used):
+def _pick(videos, need, used, query=''):
     """Best portrait file for a scene of `need` seconds, as (video, file).
 
-    Pexels already orders results by relevance, so the ranking stays a
-    tiebreaker behind "long enough to cover the scene": a top-ranked 12 s clip
-    beats a lower-ranked 10 s one, but a 4 s clip never wins.
+    Only clips whose slug matches the query are eligible, and Pexels' ranking
+    stays a tiebreaker behind "long enough to cover the scene": a top-ranked
+    12 s clip beats a lower-ranked 10 s one, but a 4 s clip never wins.
     """
     best, best_score = None, None
     for rank, video in enumerate(videos):
-        if video.get('id') in used or float(video.get('duration') or 0) < 4:
+        if str(video.get('id')) in used or float(video.get('duration') or 0) < 4:
+            continue
+        if not _matches(query, video):
             continue
         files = [f for f in video.get('video_files') or []
                  if f.get('file_type') == 'video/mp4' and f.get('width') and f.get('height')
@@ -203,7 +249,11 @@ def _pick(videos, need, used):
         near = [f for f in files if f['height'] <= MAX_HEIGHT] or files
         file = max(near, key=lambda f: f['height'])
         duration = float(video['duration'])
-        score = (0 if duration >= need else 1, rank, abs(duration - need))
+        # A clip long enough to cover the scene comes first, then how much of the
+        # query its own label names: one that says "bread" only should lose to
+        # one that says "shared meal", even if Pexels ranked it higher.
+        detail = search_text.overlap(query, urlparse(str(video.get('url') or '')).path)
+        score = (0 if duration >= need else 1, -min(detail, 3), rank, abs(duration - need))
         if best_score is None or score < best_score:
             best, best_score = (video, file), score
     return best
@@ -240,7 +290,10 @@ def prepare(points, kind, folder, progress, need=None):
         return [None] * len(points), [{'video_reason': 'Pexels key not configured'}] * len(points)
     cache = _cache_dir()
     _prune_cache(cache)
-    clips, credits, used = [], [], set()
+    clips, credits = [], []
+    # Ids already used by recent videos stay out, so a fixed query cannot put the
+    # same clip in every video for weeks.
+    used = {str(asset_id) for asset_id in fresh.recent('video')}
     needs = list(need or [10.0] * len(points))
     blocked = ''
     with httpx.Client(timeout=httpx.Timeout(20, connect=8), follow_redirects=False) as client:
@@ -259,20 +312,24 @@ def prepare(points, kind, folder, progress, need=None):
             found = None
             for attempt, text in enumerate(dict.fromkeys(candidates)):
                 progress(f'Stock video {index + 1}/{len(points)}: {text}')
-                try:
-                    videos = _search(client, text, cache, key)
-                    found = _pick(videos, needs[index] if index < len(needs) else 10.0, used)
-                except httpx.HTTPStatusError as exc:
-                    found = None
-                    # 429 is the hourly API quota: retrying the remaining scenes
-                    # only deepens it, and every scene keeps its photo anyway.
-                    if exc.response.status_code in (401, 403, 429):
-                        blocked = f'Pexels unavailable (HTTP {exc.response.status_code})'
+                for page in (1, 2):
+                    try:
+                        videos = _search(client, text, cache, key, page=page)
+                        found = _pick(videos, needs[index] if index < len(needs) else 10.0,
+                                      used, text)
+                    except httpx.HTTPStatusError as exc:
+                        found = None
+                        # 429 is the hourly API quota: retrying the remaining scenes
+                        # only deepens it, and every scene keeps its photo anyway.
+                        if exc.response.status_code in (401, 403, 429):
+                            blocked = f'Pexels unavailable (HTTP {exc.response.status_code})'
+                            break
+                    except (httpx.HTTPError, ValueError, KeyError):
+                        found = None
+                    if found or blocked:
                         break
-                except (httpx.HTTPError, ValueError, KeyError):
-                    found = None
-                if found:
-                    if attempt:
+                if found or blocked:
+                    if found and attempt:
                         credits_entry['query'] = text
                     break
             if blocked:
@@ -281,7 +338,7 @@ def prepare(points, kind, folder, progress, need=None):
                 credits.append(credits_entry)
                 continue
             if not found:
-                credits_entry['video_reason'] = 'no portrait clip matched'
+                credits_entry['video_reason'] = 'no matching portrait clip'
                 clips.append(None)
                 credits.append(credits_entry)
                 continue
@@ -293,7 +350,8 @@ def prepare(points, kind, folder, progress, need=None):
                 clips.append(None)
                 credits.append(credits_entry)
                 continue
-            used.add(video['id'])
+            used.add(str(video['id']))
+            fresh.remember('video', [video['id']])
             clips.append({'path': path, 'duration': float(video['duration']), 'id': video['id']})
             credits_entry.update({
                 'provider': 'pexels', 'kind': 'video', 'video_id': video['id'],
@@ -329,6 +387,9 @@ def expand(clip, out_dir, seconds, fps, width, height):
     filters.append(f'fps={fps}')
     filters.append(f'scale={width}:{height}:force_original_aspect_ratio=increase')
     filters.append(f'crop={width}:{height}')
+    # Footage is usually brighter and busier than the still photos this replaces,
+    # so a gentle grade keeps the Tamil text layer readable on top of it.
+    filters.append('eq=brightness=-0.05:contrast=1.04:saturation=1.03')
     filters.append('setsar=1')
     if out_dir.exists():
         shutil.rmtree(out_dir, ignore_errors=True)

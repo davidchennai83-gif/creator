@@ -73,10 +73,21 @@ of writing ad-hoc SQL.
 - Real footage backgrounds: `VIDEO_SOURCE=stock` replaces the Ken Burns photo
   with a portrait Pexels video clip per scene (`stock_video.py`). Search words
   come from the point's own `photo_query`, else the local Ollama model turns
-  the Tamil title into English nouns (cached per text), else a kind preset.
-  Meesho stays on product photos (`STOCK_SKIP_KINDS`), and any scene whose clip
-  is missing, too slow or fails to decode keeps its animated photo, so a Pexels
-  outage never fails a render. Clips are cached by Pexels id under
+  the item's English title into a "what the camera sees" phrase (cached per
+  text), else a kind preset. Two guards keep footage on-topic: a result must
+  share a meaningful word with its own Pexels slug, and animated/motion-graphic
+  clips are refused. Anything else keeps its photo animation, so a Pexels
+  outage never fails a render.
+- Backgrounds never repeat: `fresh.py` records every photo/video id in
+  `storage/video_creator/used-media.json` and the pickers skip ids used inside
+  `STOCK_REUSE_DAYS` (21). The first run seeds the file from past jobs'
+  `media_sources`, so yesterday's pictures are not shown again.
+- Second free photo source: `commons.py` (Wikimedia Commons, no API key, CC0 /
+  PD / CC BY only, NC/ND/BY-SA refused) is tried when Pexels has no fresh,
+  matching photo. Commons is a library rather than a stock site, so queries
+  like "palm leaf manuscript" return the actual object.
+- Meesho stays on product photos and news stays on its publisher image
+  (`STOCK_SKIP_KINDS`). Clips are cached by Pexels id under
   `storage/video_creator/pexels-cache` and pruned past 8 GB.
 - Encoder: `h264_nvenc` (p7, `VIDEO_CQ`) with automatic `libx264` fallback.
   `VIDEO_FPS=30`, output is limited-range BT.709, audio 48 kHz.

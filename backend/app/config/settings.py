@@ -89,6 +89,9 @@ class Settings(BaseSettings):
     # Meesho scenes must show the actual catalogue product, and news scenes use
     # the article's own feed photo, which is more relevant than generic footage.
     STOCK_SKIP_KINDS: str = "meesho,news"
+    # Backgrounds repeat for weeks when a fixed query returns the same ranked
+    # page. Ids used inside this many days are skipped (0 disables the check).
+    STOCK_REUSE_DAYS: int = 21
     # 'local' renders animated-image motion (Ken Burns / parallax / particles).
     # 'http' connects a generic image-to-video/text-to-video API (see video_gen.py).
     VIDEO_PROVIDER: str = "local"

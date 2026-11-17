@@ -87,7 +87,8 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
         const law = kind === 'indian-law';
         const money = kind === 'make-money';
         const compact = law || money;
-        const photo = background?.provider === 'pexels' || background?.provider === 'feed';
+        const commons = background?.provider === 'commons';
+        const photo = background?.provider === 'pexels' || background?.provider === 'feed' || commons;
         const product = kind === 'meesho' && background?.provider === 'product';
         document.body.classList.toggle('photo', photo);
         document.body.classList.toggle('product', product);
@@ -125,6 +126,7 @@ const PAGE = `<html><head><meta charset="utf-8"><style>
         // A scene that will be replaced by real footage must not credit the
         // spare still photo; the video credit is filled in per scene.
         else if (photo && background.video) footer += ` | Footage: ${background.photographer} / Pexels`;
+        else if (commons) footer += ` | Photo: ${background.photographer} / Wikimedia Commons`;
         else if (photo) footer += ` | Illustrative photo: ${background.photographer} / Pexels`;
         else if (background) footer += ` | Illustration: ${background.topic}`;
         document.querySelector('footer').textContent = footer;

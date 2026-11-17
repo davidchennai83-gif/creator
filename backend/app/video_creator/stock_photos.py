@@ -12,6 +12,9 @@ import httpx
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 
 from app.config.settings import settings
+from . import commons
+from . import fresh
+from . import search_text
 from .backgrounds import illustration
 
 QUERIES = {
@@ -58,8 +61,8 @@ def query_for(point, kind, topic):
     return point.get('photo_query') or QUERIES[topic]
 
 
-def _search(client, query, cache, key):
-    path = cache / (hashlib.sha256(query.encode()).hexdigest() + '.json')
+def _search(client, query, cache, key, page=1):
+    path = cache / (hashlib.sha256(f'{query}|{page}'.encode()).hexdigest() + '.json')
     try:
         if time.time() - path.stat().st_mtime < 86400:
             return json.loads(path.read_text(encoding='utf-8'))
@@ -67,11 +70,53 @@ def _search(client, query, cache, key):
         pass
     response = client.get('https://api.pexels.com/v1/search',
                           headers={'Authorization': key},
-                          params={'query': query, 'orientation': 'portrait', 'per_page': 12})
+                          params={'query': query, 'orientation': 'portrait', 'per_page': 12,
+                                  'page': page})
     response.raise_for_status()
     photos = response.json()['photos']
     path.write_text(json.dumps(photos), encoding='utf-8')
     return photos
+
+
+def _pick_photo(photos, blocked, query):
+    """First unused photo that describes the query, else first unused photo.
+
+    ``alt`` is Pexels' own description of the picture, so it is a reliable label
+    for rejecting a loose match without needing a vision model.
+    """
+    unused = [photo for photo in photos if str(photo.get('id')) not in blocked]
+    if not unused:
+        return None
+    return (next((p for p in unused if search_text.matches(query, p.get('alt'))), None)
+            or unused[0])
+
+
+def _pexels_scene(client, query, cache, key, blocked, disabled_reason):
+    """(photo, jpeg bytes) from Pexels, or ValueError explaining why not."""
+    if disabled_reason:
+        raise ValueError(disabled_reason)
+    # Page 2 is fetched only when page 1 has nothing usable (all used or all
+    # unrelated), because every page costs one request from a small hourly quota.
+    photos = _search(client, query, cache, key, page=1)
+    photo = _pick_photo(photos, blocked, query)
+    if not photo:
+        photos += _search(client, query, cache, key, page=2)
+        photo = _pick_photo(photos, blocked, query)
+    if not photo:
+        raise ValueError('No unused matching photo')
+    return photo, _image(client, photo, cache)
+
+
+def _commons_scene(client, query, cache, blocked):
+    """(image, 1080x1920 jpeg) from Wikimedia Commons, or ValueError."""
+    images = commons.search_images(client, query, cache)
+    image = next((item for item in images if str(item['id']) not in blocked
+                  and search_text.matches(query, item['title'])), None)
+    if not image:
+        image = next((item for item in images if str(item['id']) not in blocked), None)
+    if not image:
+        raise ValueError('No free-licence Commons image')
+    return image, commons.portrait(commons.download(client, image, cache))
 
 
 def _product_image(client, value, cache):
@@ -260,25 +305,41 @@ def prepare_backgrounds(points, kind, folder, progress):
             background = dict(fallback, provider='illustration')
             credit = {'scene': index + 1, 'provider': 'illustration', 'query': query}
             progress(f'Background photo {index + 1}/{len(points)}: {query}')
-            try:
-                if disabled_reason:
-                    raise ValueError(disabled_reason)
-                photos = _search(client, query, cache, key)
-                photo = next((p for p in photos if p['id'] not in used), None)
-                if not photo:
-                    raise ValueError('No unused matching photo')
-                image = _image(client, photo, cache)
-                used.add(photo['id'])
-                background.update(provider='pexels', image='data:image/jpeg;base64,' + base64.b64encode(image).decode(),
-                                  photographer=photo['photographer'])
-                credit.update(provider='pexels', photo_id=photo['id'], photographer=photo['photographer'],
-                              source_url=photo['url'], photographer_url=photo.get('photographer_url', ''),
-                              license_url='https://www.pexels.com/license/')
-            except (httpx.HTTPError, ValueError, KeyError, OSError) as exc:
-                if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code in (401, 403, 429):
-                    disabled_reason = f'Pexels unavailable (HTTP {exc.response.status_code})'
-                elif isinstance(exc, httpx.RequestError):
-                    disabled_reason = 'Pexels network unavailable'
+            blocked = {str(asset_id) for asset_id in used} | fresh.recent('photo')
+            image = None
+            for provider_name in ('pexels', 'commons'):
+                try:
+                    if provider_name == 'pexels':
+                        found, image = _pexels_scene(client, query, cache, key, blocked, disabled_reason)
+                    else:
+                        found, image = _commons_scene(client, query, cache, blocked)
+                except (httpx.HTTPError, ValueError, KeyError, OSError) as exc:
+                    if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code in (401, 403, 429):
+                        disabled_reason = f'Pexels unavailable (HTTP {exc.response.status_code})'
+                    elif isinstance(exc, httpx.RequestError):
+                        disabled_reason = 'Pexels network unavailable'
+                    continue
+                used.add(str(found['id']))
+                fresh.remember('photo', [found['id']])
+                data = 'data:image/jpeg;base64,' + base64.b64encode(image).decode()
+                if provider_name == 'pexels':
+                    background.update(provider='pexels', image=data,
+                                      photographer=found['photographer'])
+                    credit.update(provider='pexels', photo_id=found['id'],
+                                  photographer=found['photographer'],
+                                  source_url=found['url'],
+                                  photographer_url=found.get('photographer_url', ''),
+                                  license_url='https://www.pexels.com/license/')
+                else:
+                    background.update(provider='commons', image=data,
+                                      photographer=found['artist'] or 'Wikimedia Commons')
+                    credit.update(provider='commons', commons_id=found['id'],
+                                  photographer=found['artist'] or 'Wikimedia Commons',
+                                  source_url=found['page'],
+                                  license=found['license'],
+                                  license_url=found['license_url'])
+                break
+            if image is None:
                 credit['fallback_reason'] = disabled_reason or 'No usable stock photo for this scene'
                 progress(f"Scene {index + 1}: {credit['fallback_reason']}; using illustration")
             backgrounds.append(background)
