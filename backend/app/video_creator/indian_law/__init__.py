@@ -9,8 +9,9 @@ import json
 from datetime import date
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from ..scripts import Point
+from ..style import check as check_style
 
 HERE = Path(__file__).parent
 MAX_LINE = 126  # a longer opener forces the law card below a readable font size
@@ -18,6 +19,11 @@ MAX_LINE = 126  # a longer opener forces the law card below a readable font size
 
 class LawPoint(Point):
     lines: list[str] = Field(min_length=4, max_length=4)
+
+    @field_validator('lines')
+    @classmethod
+    def house_style(cls, lines):
+        return check_style(lines, 'law line')
 
 
 class LawScript(BaseModel):

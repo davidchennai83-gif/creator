@@ -69,6 +69,14 @@ of writing ad-hoc SQL.
 - A bulletin scene keeps the publisher's own photo of that story (`provider`
   `feed`); real footage only fills scenes whose feed image could not be
   downloaded. `stock_video.prepare(..., skip=...)` is how that is enforced.
+- Every script follows one spoken register (`video_creator/style.py`): the first
+  line names the subject and only then explains it, the narration talks to the
+  viewer (`நீங்க`, `உங்க`), no scene opens with a stock filler, and no line ends
+  in "பாருங்க". Law scenes open with `<Tamil Act name>, <year> — <gist>`,
+  composed in code so the Act is always named first. Curated catalogues are
+  validated against the register, model prompts state it, and
+  `backend/tests/test_script_style.py` scans every catalogue. A channel line
+  that every item shares ("follow for more") is spoken on the last scene only.
 - Every YouTube upload is cross-posted to Facebook and Instagram. Descriptions
   include the YouTube link with `?sub_confirmation=1`.
 - Upload automation drives the already signed-in Chrome profile

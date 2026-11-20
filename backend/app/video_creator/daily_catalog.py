@@ -9,8 +9,11 @@ A catalogue project ships a ``catalog.json``: a list of items shaped like
      "links": [{"title": "...", "link": "https://..."}]}
 
 ``lines`` are the Tamil narration; the renderer joins them with '. ' and speaks
-them with the chosen Tamil voice. Every line must contain Tamil script and stay
-short enough that the frame keeps a readable font size.
+them with the chosen Tamil voice. Every line must contain Tamil script, stay
+short enough that the frame keeps a readable font size, and follow the house
+register in ``style.py`` (subject first, no stock opener, no line ending in
+"பாருங்க"). When every item closes with the same channel line, it is spoken on
+the last scene only so one video never repeats it.
 
 Why a combination stride instead of a plain slice: the older kinds pick a
 contiguous block of five items a day, so a 30-item catalogue repeats every 6
@@ -26,8 +29,9 @@ from datetime import date
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
+from . import style
 from .scripts import Point
 
 EPOCH = date(2026, 1, 1)
@@ -38,6 +42,11 @@ MIN_CYCLE_DAYS = 365    # every catalogue project must cover at least a year
 class CataloguePoint(Point):
     """One narrated scene of a catalogue video (a couplet, phrase or fact)."""
     lines: list[str] = Field(min_length=2, max_length=6)
+
+    @field_validator('lines')
+    @classmethod
+    def house_style(cls, lines):
+        return style.check(lines, 'catalogue line')
 
 
 class CatalogueScript(BaseModel):
@@ -116,14 +125,22 @@ def build_points(items, day, per_day):
     picks = [items[i] for i in select_positions(len(items), day, per_day)]
     validated = CatalogueScript(points=[CataloguePoint(source_id=i, lines=item['lines'])
                                         for i, item in enumerate(picks)])
+    # Every item in a catalogue ends with the same channel line ("follow for
+    # more"). Spoken on every scene it repeats three times in one video, so it
+    # is kept for the last scene only and the rest end on their own fact.
+    closing = picks[0]['lines'][-1] if len(picks) > 1 and all(
+        item['lines'][-1] == picks[0]['lines'][-1] for item in picks) else None
     points = []
     for i, item in enumerate(picks):
+        lines = validated.points[i].lines
+        if closing is not None and i < len(picks) - 1:
+            lines = lines[:-1]
         points.append({
             'source_id': i,
             'title': item.get('title', ''),
             'title_en': item.get('title_en', ''),
             'text': ' '.join(item.get('facts', [])),
-            'lines': validated.points[i].lines,
+            'lines': lines,
             'topic': item.get('topic', 'book'),
             'photo_query': item.get('photo', ''),
             'links': item.get('links', []),

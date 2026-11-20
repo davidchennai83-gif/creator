@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 # open every day with the same line. {price} is the catalogue price.
 TEMPLATE_HOOKS = (
     "{price}-ல இதான் best",
-    "{price} budget-ல இதைப் பாருங்க",
+    "{price}-ல இந்த product பாத்தீங்களா?",
     "{price}-க்கு இந்த product எப்படி?",
     "இன்றைய {price} Budget Pick",
     "{price}-ல கிடைக்கும் ஒரு option",

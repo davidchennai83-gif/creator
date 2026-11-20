@@ -7,12 +7,15 @@
   "topic": "health",
   "photo": "glass of water being poured",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: தண்ணீர் குடிப்பது.",
+   "தண்ணீர் குடிக்கிறது பத்தி இன்னைக்கு பேசலாம்.",
    "ஒரு நாளைக்கு ஆறு முதல் எட்டு டம்ளர் தண்ணீர் குடியுங்கள்.",
    "நீர்ச்சத்து உடல் வெப்பநிலையை சீராக வைத்து சக்தியை தரும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Aim for about six to eight glasses of water a day.", "Hydration helps control body temperature and energy."],
+  "facts": [
+   "Aim for about six to eight glasses of water a day.",
+   "Hydration helps control body temperature and energy."
+  ],
   "links": []
  },
  {
@@ -23,12 +26,15 @@
   "topic": "health",
   "photo": "person sleeping peacefully in a dark room",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: நல்ல தூக்கம்.",
+   "நல்ல தூக்கம் எவ்ளோ முக்கியம்னு உங்களுக்கு தெரியுமா?",
    "இரவில் ஏழு முதல் எட்டு மணி நேரம் தூங்குங்கள்.",
    "போதுமான தூக்கம் நினைவாற்றலையும் நோய் எதிர்ப்பு சக்தியையும் கூட்டும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Adults need about seven to eight hours of sleep.", "Good sleep improves memory and immunity."],
+  "facts": [
+   "Adults need about seven to eight hours of sleep.",
+   "Good sleep improves memory and immunity."
+  ],
   "links": []
  },
  {
@@ -39,12 +45,15 @@
   "topic": "health",
   "photo": "person walking in a park early morning",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: தினசரி நடை.",
+   "தினமும் கொஞ்சம் நடப்பது உடம்புக்கு எப்படி உதவும்னு பாக்கலாம்.",
    "தினமும் முப்பது நிமிடம் வேகமாக நடையுங்கள்.",
    "நடை இதயத்திற்கும் எடைக்கும் மிகவும் நல்லது.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["A brisk thirty-minute walk each day helps the heart.", "Walking also helps control body weight."],
+  "facts": [
+   "A brisk thirty-minute walk each day helps the heart.",
+   "Walking also helps control body weight."
+  ],
   "links": []
  },
  {
@@ -55,12 +64,15 @@
   "topic": "health",
   "photo": "colourful fresh vegetables and fruits",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: காய்கறியும் பழமும்.",
+   "காய்கறியும் பழமும் தினமும் சாப்பிடணும், எதுக்குனு தெரியுமா?",
    "உணவில் காய்கறிகளையும் பழங்களையும் நிறைய சேர்க்கவும்.",
    "இவை நார்ச்சத்து, வைட்டமின், தாதுப்பொருள் தரும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Fill your plate with vegetables and fruit.", "They provide fibre, vitamins and minerals."],
+  "facts": [
+   "Fill your plate with vegetables and fruit.",
+   "They provide fibre, vitamins and minerals."
+  ],
   "links": []
  },
  {
@@ -71,12 +83,15 @@
   "topic": "health",
   "photo": "measuring salt and sugar on a kitchen counter",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: உப்பும் சர்க்கரையும்.",
+   "உப்பும் சர்க்கரையும் கொஞ்சம் குறைச்சா என்ன ஆகும்னு பாக்கலாம்.",
    "உணவில் உப்பு மற்றும் சர்க்கரையை குறைக்கவும்.",
    "அதிக உப்பு இரத்த அழுத்தத்தையும், சர்க்கரை நீரிழிவையும் அதிகரிக்கும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Too much salt can raise blood pressure.", "Too much sugar can raise diabetes risk."],
+  "facts": [
+   "Too much salt can raise blood pressure.",
+   "Too much sugar can raise diabetes risk."
+  ],
   "links": []
  },
  {
@@ -87,12 +102,15 @@
   "topic": "health",
   "photo": "hands being washed with soap under a tap",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: கை சுத்தம்.",
+   "கைகளை சோப்பு போட்டு கழுவிறது பத்தி ஒரு சின்ன விஷயம்.",
    "உணவுக்கு முன், கழிப்பறைக்குப் பின் கைகளை சோப்புடன் கழுவுங்கள்.",
    "இது தொற்று நோய்களை பெரிதும் தடுக்கும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Wash hands with soap before eating and after the toilet.", "Handwashing prevents many infections."],
+  "facts": [
+   "Wash hands with soap before eating and after the toilet.",
+   "Handwashing prevents many infections."
+  ],
   "links": []
  },
  {
@@ -103,12 +121,15 @@
   "topic": "health",
   "photo": "person resting eyes away from a computer screen",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: கண் ஓய்வு.",
+   "கண் ஓய்வு பத்தி ஒரு சின்ன விஷயம் சொல்றேன்.",
    "திரையை பார்க்கும்போது இருபது நிமிடத்திற்கு ஒருமுறை கண்களை ஓய்வு கொடுங்கள்.",
    "தொலைவில் உள்ள ஒன்றை பார்த்தால் கண் அழுத்தம் குறையும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Give your eyes a short break every twenty minutes of screen use.", "Looking far away relaxes the eyes."],
+  "facts": [
+   "Give your eyes a short break every twenty minutes of screen use.",
+   "Looking far away relaxes the eyes."
+  ],
   "links": []
  },
  {
@@ -119,12 +140,15 @@
   "topic": "health",
   "photo": "person sitting with good posture at a desk",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: உடல் நிலை.",
+   "நிமிர்ந்து உட்கார்றது உங்க முதுகுக்கு எவ்ளோ நல்லதுனு தெரியுமா?",
    "நிமிர்ந்து உட்கார்ந்து, நிமிர்ந்து நில்லுங்கள்.",
    "சரியான உடல் நிலை முதுகு வலியை தடுக்கும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Sitting and standing straight helps your back.", "Good posture reduces backpain."],
+  "facts": [
+   "Sitting and standing straight helps your back.",
+   "Good posture reduces backpain."
+  ],
   "links": []
  },
  {
@@ -135,12 +159,15 @@
   "topic": "health",
   "photo": "toothbrush and toothpaste on a sink",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: பல் பராமரிப்பு.",
+   "பல் பராமரிப்பு பத்தி ரெண்டு சின்ன விஷயம் சொல்றேன்.",
    "தினமும் காலை, இரவு இரண்டு முறை பல் துலக்குங்கள்.",
    "சுத்தமான பல் பற்கூச்சு மற்றும் வலியை தடுக்கும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Brush your teeth twice a day.", "Clean teeth prevent decay and pain."],
+  "facts": [
+   "Brush your teeth twice a day.",
+   "Clean teeth prevent decay and pain."
+  ],
   "links": []
  },
  {
@@ -151,12 +178,15 @@
   "topic": "health",
   "photo": "healthy south indian breakfast on a banana leaf",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: காலை உணவு.",
+   "காலை உணவை ஏன் தவிர்க்கக்கூடாது-னு தெரியுமா?",
    "காலை உணவை தவிர்க்காதீர்கள்.",
    "சரியான காலை உணவு நாள் முழுவதற்கும் சக்தி தரும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Do not skip breakfast.", "A good breakfast gives energy for the day."],
+  "facts": [
+   "Do not skip breakfast.",
+   "A good breakfast gives energy for the day."
+  ],
   "links": []
  },
  {
@@ -167,12 +197,15 @@
   "topic": "health",
   "photo": "person breathing calmly in a quiet place",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: மன அழுத்தம்.",
+   "மன அழுத்தம் அதிகமா இருக்கா? இதை கொஞ்சம் குறைக்கலாம்.",
    "மன அழுத்தத்தைக் குறைக்க ஆழமாக மூச்சு விடுங்கள்.",
    "தினமும் சிறிது நேரம் அமைதியாக இருப்பது மனதை தெளிவாக்கும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Slow deep breathing helps lower stress.", "A few quiet minutes calm the mind."],
+  "facts": [
+   "Slow deep breathing helps lower stress.",
+   "A few quiet minutes calm the mind."
+  ],
   "links": []
  },
  {
@@ -183,12 +216,15 @@
   "topic": "health",
   "photo": "sunrise over a calm field",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: காலை வெயில்.",
+   "காலை வெயில்ல கொஞ்ச நேரம் நின்னா என்ன பலன்-னு பாக்கலாம்.",
    "காலை வெயிலில் சிறிது நேரம் இருங்கள்.",
    "இது வைட்டமின் டி கிடைக்கவும் மனநிலை நல்லதாகவும் உதவும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["A little morning sunlight helps vitamin D.", "It also lifts mood."],
+  "facts": [
+   "A little morning sunlight helps vitamin D.",
+   "It also lifts mood."
+  ],
   "links": []
  },
  {
@@ -199,12 +235,15 @@
   "topic": "health",
   "photo": "no smoking sign in a clean public place",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: தவிர்க்க வேண்டியவை.",
+   "புகையிலையும் மதுவும் உடம்புக்கு எவ்ளோ கெடுதல்-னு பேசுவோம்.",
    "புகையிலை, மது ஆகியவற்றை தவிர்க்கவும்.",
    "இவை புற்றுநோய், கல்லீரல் நோய் உள்ளிட்ட பல பிரச்சினைகளை உண்டாக்கும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Tobacco and alcohol harm health in many ways.", "Avoiding them lowers the risk of cancer and liver disease."],
+  "facts": [
+   "Tobacco and alcohol harm health in many ways.",
+   "Avoiding them lowers the risk of cancer and liver disease."
+  ],
   "links": []
  },
  {
@@ -215,12 +254,15 @@
   "topic": "health",
   "photo": "phone kept away on a bedside table at night",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: தூக்கமும் திரையும்.",
+   "தூங்குறதுக்கு முன்னாடி திரை பாக்கிறது தூக்கத்தை எப்படி பாதிக்கும்-னு தெரியுமா?",
    "தூங்கும் முன் ஒரு மணி நேரம் திரையை தவிர்க்கவும்.",
    "இது விரைவாகவும் ஆழமாகவும் தூங்க உதவும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Avoid screens for an hour before bed.", "It helps you fall asleep faster."],
+  "facts": [
+   "Avoid screens for an hour before bed.",
+   "It helps you fall asleep faster."
+  ],
   "links": []
  },
  {
@@ -231,12 +273,15 @@
   "topic": "health",
   "photo": "doctor checking blood pressure of a patient",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: உடல் பரிசோதனை.",
+   "ஆண்டுக்கு ஒரு தடவை உடல் பரிசோதனை ஏன் அவசியம்-னு பாக்கலாம்.",
    "ஆண்டுக்கு ஒருமுறை உடல் பரிசோதனை செய்யுங்கள்.",
    "முன்கூட்டியே கண்டறிந்தால் பல நோய்கள் எளிதில் குணமாகும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["A yearly health check finds problems early.", "Early detection makes treatment easier."],
+  "facts": [
+   "A yearly health check finds problems early.",
+   "Early detection makes treatment easier."
+  ],
   "links": []
  },
  {
@@ -247,12 +292,15 @@
   "topic": "health",
   "photo": "basket of seasonal tropical fruits",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: பருவகால பழங்கள்.",
+   "பருவகால பழங்கள் ஏன் சிறப்பு-னு தெரியுமா?",
    "பருவகால பழங்களை விரும்பி உண்ணுங்கள்.",
    "அவை இயற்கையாகவே புதியதாகவும் சத்தானதாகவும் இருக்கும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Seasonal fruit is fresh and full of nutrients.", "It is usually cheaper too."],
+  "facts": [
+   "Seasonal fruit is fresh and full of nutrients.",
+   "It is usually cheaper too."
+  ],
   "links": []
  },
  {
@@ -263,12 +311,15 @@
   "topic": "health",
   "photo": "office worker standing and stretching",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: இயக்கம்.",
+   "நீண்ட நேரம் உட்கார்ந்தே இருந்தா என்ன ஆகும்-னு தெரியுமா?",
    "நீண்ட நேரம் உட்கார்ந்தால் இடையிடையே எழுந்து நடங்கள்.",
    "ஒவ்வொரு மணி நேரமும் சிறிது நேரம் நடப்பது நல்லது.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Stand and move every hour if you sit long.", "Short movement breaks help circulation."],
+  "facts": [
+   "Stand and move every hour if you sit long.",
+   "Short movement breaks help circulation."
+  ],
   "links": []
  },
  {
@@ -279,12 +330,15 @@
   "topic": "health",
   "photo": "family eating a calm meal together",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: மெதுவாக சாப்பிடுவது.",
+   "மெதுவா மென்று சாப்பிடுறது பத்தி ஒரு சின்ன கவனம்.",
    "உணவை அவசரப்படாமல் மெதுவாக மென்று சாப்பிடுங்கள்.",
    "இது செரிமானத்திற்கும் அளவான உணவுக்கும் உதவும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Chewing slowly aids digestion.", "Eating slowly helps you eat the right amount."],
+  "facts": [
+   "Chewing slowly aids digestion.",
+   "Eating slowly helps you eat the right amount."
+  ],
   "links": []
  },
  {
@@ -295,12 +349,15 @@
   "topic": "health",
   "photo": "person checking weight on a scale",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: உடல் எடை.",
+   "உடல் எடையை சீரா வெச்சுக்கிறது ஏன் முக்கியம்-னு பாக்கலாம்.",
    "உங்கள் எடையை சீராக பராமரியுங்கள்.",
    "அளவான உணவும் இயக்கமும் எடையை கட்டுக்குள் வைக்கும்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Keeping a steady healthy weight helps the heart.", "Balanced food and exercise control weight."],
+  "facts": [
+   "Keeping a steady healthy weight helps the heart.",
+   "Balanced food and exercise control weight."
+  ],
   "links": []
  },
  {
@@ -311,12 +368,15 @@
   "topic": "health",
   "photo": "friends laughing and talking together",
   "lines": [
-   "இன்றைய உடல்நல குறிப்பு: மனநலம்.",
+   "நண்பர்களோட பேசுறது மனநலத்துக்கு எவ்ளோ உதவும்னு தெரியுமா?",
    "நண்பர்களுடனும் குடும்பத்துடனும் பேசி மகிழுங்கள்.",
    "மகிழ்ச்சியும் நல்ல உறவுகளும் மனநலத்திற்கு மிக அவசியம்.",
    "இதுபோன்ற நல குறிப்புகளுக்கு பின்தொடருங்கள்."
   ],
-  "facts": ["Talking with friends and family supports mental health.", "Happiness and good relationships matter for wellbeing."],
+  "facts": [
+   "Talking with friends and family supports mental health.",
+   "Happiness and good relationships matter for wellbeing."
+  ],
   "links": []
  }
 ]

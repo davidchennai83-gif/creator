@@ -7,6 +7,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, field_validator
 
 from ..scripts import Point
+from ..style import check as check_style
 
 HERE = Path(__file__).parent
 EPOCH = date(2026, 1, 1)
@@ -22,7 +23,7 @@ class MoneyPoint(Point):
     def fits_frame(cls, lines):
         if any(len(line) > MAX_LINE for line in lines):
             raise ValueError(f'Each line must be {MAX_LINE} characters or fewer to fit the video frame')
-        return lines
+        return check_style(lines, 'money line')
 
 
 class MoneyScript(BaseModel):

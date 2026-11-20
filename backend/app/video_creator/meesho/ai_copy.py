@@ -52,7 +52,7 @@ BANNED_CLAIMS = (
     "weight loss",
 )
 
-DEFAULT_HOOK = "இன்றைய Budget Pick-ல இதைப் பாருங்க."
+DEFAULT_HOOK = "இன்னைக்கு Budget Pick இதோ."
 DEFAULT_CTA = "Description-ல உள்ள link-ல order பண்ணுங்க!"
 DEFAULT_CAUTION = "Size / colour check பண்ணி order பண்ணுங்க."
 
@@ -219,6 +219,8 @@ def build_prompt(product: dict) -> str:
         "- cta_ta: one short Tamil call to action, max 60 characters, tell viewers to use the "
         "link in the description. A good example: 'Description-ல உள்ள link-ல order பண்ணுங்க!'\n"
         "Use Tamil script. Natural spoken Tamil; common English product words are fine. "
+        "Name the product or the everyday problem in the first few words of the hook. "
+        "Never end a line with பாருங்க and never open one with a stock filler phrase. "
         "No emojis, no URLs, no new numbers.\n"
         "FACTS:\n" + json.dumps(facts, ensure_ascii=False)
     )
