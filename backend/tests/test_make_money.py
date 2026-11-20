@@ -53,6 +53,15 @@ def test_no_guaranteed_income_or_get_rich_quick_claims():
         assert not any(lakh.search(line) for line in tamil_lines()[idea['id']]), idea['id']
 
 
+def test_each_idea_starts_with_the_subject_not_a_stock_filler_opener():
+    filler = ('ஒரு நிமிஷம் யோசிச்சு பாருங்க', 'இதுக்கு பின்னாடி', 'இங்கதான் ஒரு')
+    for idea in catalog():
+        lines = tamil_lines()[idea['id']]
+        assert not any(lines[0].startswith(prefix) for prefix in filler), idea['id']
+        for line in lines:
+            assert not line.rstrip(' .').endswith('பாருங்க'), idea['id']
+
+
 def test_script_requires_five_ideas_four_tamil_lines_that_fit_the_frame():
     point = {'source_id': 0, 'lines': ['இது ஒரு சிறிய வழிமுறை.'] * 4}
     assert len(MoneyScript(points=[dict(point, source_id=i) for i in range(5)]).points) == 5
